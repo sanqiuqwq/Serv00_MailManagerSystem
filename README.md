@@ -31,6 +31,24 @@ python init_db.py
 ```bash
 python app.py
 ```
+## 更新
+
+1.备份旧版数据库
+
+2.停止运行项目
+
+3.删除全部文件，仅保留旧版目录中.env文件
+
+4.到release中下载新版源码
+
+5.根据提示更新.env配置文件
+
+6. 更新数据库（建议每次更新都使用）：
+```bash
+python update_db.py
+```
+
+7.运行新项目
 
 ## 默认Owner账户
 
@@ -148,6 +166,25 @@ Email_Distribution/
 │       └── settings.html      # 站点设置
 └── static/                    # 静态文件（如需要）
 ```
+
+## NodeLoc OAuth 使用说明
+
+### 配置步骤
+
+1. 在 NodeLoc 创建 OAuth 应用：
+   访问：https://www.nodeloc.com/oauth-provider/applications
+
+2. 记录以下信息：
+   - Client ID
+   - Client Secret
+   - Redirect URI（回调地址：https://你的域名/auth/nodeloc/callback）
+
+3. 在 `.env` 中配置：
+```env
+NODELOC_ENABLED=true
+NODELOC_CLIENT_ID=你的Client ID
+NODELOC_CLIENT_SECRET=你的Client Secret
+NODELOC_REDIRECT_URI=https://你的域名/auth/nodeloc/callback
 
 
 
