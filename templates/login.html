@@ -26,6 +26,18 @@
                     {% endif %}
                     <button type="submit" class="btn btn-primary w-100">登录</button>
                 </form>
+                {% if nodeloc_enabled %}
+                <div class="mt-3 text-center">
+                    <div class="d-flex align-items-center my-3">
+                        <hr class="flex-grow-1">
+                        <span class="mx-2 text-muted">或</span>
+                        <hr class="flex-grow-1">
+                    </div>
+                    <a href="{{ url_for('auth_nodeloc') }}" class="btn btn-outline-dark w-100">
+                        <i class="fa fa-globe me-2"></i>使用 NodeLoc 登录
+                    </a>
+                </div>
+                {% endif %}
                 <div class="mt-3 text-center">
                     <p>
                         <a href="{{ url_for('forgot_password') }}">忘记密码？</a>

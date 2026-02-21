@@ -36,6 +36,13 @@
                             <span class="badge bg-secondary">普通用户</span>
                             {% endif %}
                         </p>
+                        <p><strong>NodeLoc绑定:</strong> 
+                            {% if current_user.nodeloc_id %}
+                            <span class="badge bg-success">已绑定</span>
+                            {% else %}
+                            <span class="badge bg-secondary">未绑定</span>
+                            {% endif %}
+                        </p>
                         <p><strong>邮箱配额:</strong> {{ current_user.get_email_count() }}/{{ current_user.get_max_emails() }}
                             {% if current_user.temp_expires_at and current_user.temp_expires_at > datetime.utcnow() %}
                             <span class="badge bg-info ms-2">临时+{{ current_user.temp_extra_emails }} (到{{ current_user.temp_expires_at.strftime('%Y-%m-%d') }})</span>
@@ -53,6 +60,13 @@
                         <a href="{{ site_settings.tg_group_url }}" target="_blank" class="btn btn-info mb-2"><i class="fa fa-telegram"></i> 加入TG交流群</a>
                         {% endif %}
                         <a href="{{ url_for('tickets') }}" class="btn btn-info mb-2">工单中心</a>
+                        {% if nodeloc_enabled %}
+                            {% if current_user.nodeloc_id %}
+                            <a href="{{ url_for('auth_nodeloc_unbind') }}" class="btn btn-danger mb-2">解绑NodeLoc</a>
+                            {% else %}
+                            <a href="{{ url_for('auth_nodeloc_bind') }}" class="btn btn-outline-dark mb-2"><i class="fa fa-globe"></i> 绑定NodeLoc</a>
+                            {% endif %}
+                        {% endif %}
                         {% if not current_user.is_verified %}
                         <form method="POST" action="{{ url_for('resend_verification') }}" class="d-inline">
                             <button type="submit" class="btn btn-secondary mb-2">重新发送验证邮件</button>

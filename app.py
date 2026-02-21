@@ -52,6 +52,13 @@ RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')
 RECAPTCHA_USE_CN = os.getenv('RECAPTCHA_USE_CN', 'true').lower() == 'true'
 RECAPTCHA_ENABLED = os.getenv('RECAPTCHA_ENABLED', 'true').lower() == 'true'
 
+# NodeLoc OAuth 配置
+NODELOC_URL = os.getenv('NODELOC_URL', 'https://www.nodeloc.com')
+NODELOC_CLIENT_ID = os.getenv('NODELOC_CLIENT_ID')
+NODELOC_CLIENT_SECRET = os.getenv('NODELOC_CLIENT_SECRET')
+NODELOC_REDIRECT_URI = os.getenv('NODELOC_REDIRECT_URI')
+NODELOC_ENABLED = os.getenv('NODELOC_ENABLED', 'false').lower() == 'true'
+
 if RECAPTCHA_USE_CN:
     RECAPTCHA_API_URL = 'https://www.recaptcha.net/recaptcha/api.js'
     RECAPTCHA_VERIFY_URL = 'https://www.recaptcha.net/recaptcha/api/siteverify'
@@ -109,6 +116,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    nodeloc_id = db.Column(db.Integer, unique=True)
     is_verified = db.Column(db.Boolean, default=False)
     is_banned = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
@@ -517,6 +525,164 @@ def serv00_reset_password(email_address, new_password):
 @app.context_processor
 def inject_recaptcha_key():
     return dict(recaptcha_site_key=RECAPTCHA_SITE_KEY, recaptcha_api_url=RECAPTCHA_API_URL, recaptcha_enabled=RECAPTCHA_ENABLED)
+
+
+@app.context_processor
+def inject_nodeloc_config():
+    return dict(nodeloc_enabled=NODELOC_ENABLED)
+
+
+@app.route('/auth/nodeloc')
+def auth_nodeloc():
+    if not NODELOC_ENABLED or not NODELOC_CLIENT_ID or not NODELOC_REDIRECT_URI:
+        flash('NodeLoc登录未启用', 'danger')
+        return redirect(url_for('login'))
+    
+    state = secrets.token_urlsafe(32)
+    session['nodeloc_state'] = state
+    
+    auth_url = f"{NODELOC_URL}/oauth-provider/authorize?client_id={NODELOC_CLIENT_ID}&redirect_uri={NODELOC_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
+    return redirect(auth_url)
+
+
+@app.route('/auth/nodeloc/bind')
+@login_required
+def auth_nodeloc_bind():
+    if not NODELOC_ENABLED or not NODELOC_CLIENT_ID or not NODELOC_REDIRECT_URI:
+        flash('NodeLoc登录未启用', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    state = secrets.token_urlsafe(32)
+    session['nodeloc_bind_state'] = state
+    session['nodeloc_bind_user_id'] = current_user.id
+    
+    auth_url = f"{NODELOC_URL}/oauth-provider/authorize?client_id={NODELOC_CLIENT_ID}&redirect_uri={NODELOC_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
+    return redirect(auth_url)
+
+
+@app.route('/auth/nodeloc/unbind')
+@login_required
+def auth_nodeloc_unbind():
+    if current_user.nodeloc_id:
+        current_user.nodeloc_id = None
+        db.session.commit()
+        flash('NodeLoc账户解绑成功', 'success')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/auth/nodeloc/callback')
+def auth_nodeloc_callback():
+    if not NODELOC_ENABLED:
+        flash('NodeLoc登录未启用', 'danger')
+        return redirect(url_for('login'))
+    
+    code = request.args.get('code')
+    state = request.args.get('state')
+    error = request.args.get('error')
+    
+    if error:
+        flash('NodeLoc授权失败', 'danger')
+        return redirect(url_for('login'))
+    
+    if not code or not state:
+        flash('无效的请求', 'danger')
+        return redirect(url_for('login'))
+    
+    is_bind = False
+    bind_user_id = None
+    
+    if state == session.get('nodeloc_bind_state'):
+        is_bind = True
+        bind_user_id = session.get('nodeloc_bind_user_id')
+        session.pop('nodeloc_bind_state', None)
+        session.pop('nodeloc_bind_user_id', None)
+    elif state == session.get('nodeloc_state'):
+        session.pop('nodeloc_state', None)
+    else:
+        flash('无效的请求', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        token_data = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': NODELOC_REDIRECT_URI,
+            'client_id': NODELOC_CLIENT_ID,
+            'client_secret': NODELOC_CLIENT_SECRET
+        }
+        
+        token_response = requests.post(
+            f"{NODELOC_URL}/oauth-provider/token",
+            data=token_data,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            timeout=10
+        )
+        
+        if token_response.status_code != 200:
+            flash('获取Token失败', 'danger')
+            return redirect(url_for('login'))
+        
+        token_json = token_response.json()
+        access_token = token_json.get('access_token')
+        
+        if not access_token:
+            flash('无效的Token响应', 'danger')
+            return redirect(url_for('login'))
+        
+        userinfo_response = requests.get(
+            f"{NODELOC_URL}/oauth-provider/userinfo",
+            headers={'Authorization': f'Bearer {access_token}'},
+            timeout=10
+        )
+        
+        if userinfo_response.status_code != 200:
+            flash('获取用户信息失败', 'danger')
+            return redirect(url_for('login'))
+        
+        userinfo = userinfo_response.json()
+        nodeloc_id = userinfo.get('id')
+        username = userinfo.get('username')
+        
+        if not nodeloc_id or not username:
+            flash('无效的用户信息', 'danger')
+            return redirect(url_for('login'))
+        
+        if is_bind:
+            user = User.query.get(bind_user_id)
+            if not user:
+                flash('用户不存在', 'danger')
+                return redirect(url_for('dashboard'))
+            
+            existing_user = User.query.filter_by(nodeloc_id=nodeloc_id).first()
+            if existing_user and existing_user.id != user.id:
+                flash('该NodeLoc账户已绑定到其他用户', 'danger')
+                return redirect(url_for('dashboard'))
+            
+            user.nodeloc_id = nodeloc_id
+            db.session.commit()
+            flash('NodeLoc账户绑定成功！现在可以使用NodeLoc登录了', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            user = User.query.filter_by(nodeloc_id=nodeloc_id).first()
+            
+            if not user:
+                flash('该NodeLoc账户未绑定，请先使用密码登录后在用户中心绑定', 'danger')
+                return redirect(url_for('login'))
+            
+            if user.is_banned:
+                flash('您的账户已被禁用', 'danger')
+                return redirect(url_for('login'))
+            
+            login_user(user)
+            flash('登录成功', 'success')
+            return redirect(url_for('dashboard'))
+        
+    except requests.exceptions.RequestException:
+        flash('网络请求超时，请重试', 'danger')
+        return redirect(url_for('login'))
+    except Exception as e:
+        flash('操作失败，请重试', 'danger')
+        return redirect(url_for('login'))
 
 
 @app.route('/')
