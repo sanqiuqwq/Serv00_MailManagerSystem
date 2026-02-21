@@ -180,69 +180,6 @@
                             {% endif %}
                         </div>
                     </div>
-
-                    <div class="modal fade" id="resetModal{{ email.id }}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form method="POST" action="{{ url_for('reset_email_password', email_id=email.id) }}">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">重置邮箱密码</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label for="new_password" class="form-label">新密码</label>
-                                            <input type="password" class="form-control" id="new_password" name="new_password" required>
-                                            <div class="form-text text-muted small">
-                                                <strong>密码要求：</strong>
-                                                <ul class="mb-0 mt-1">
-                                                    <li>至少6个字符</li>
-                                                    <li>至少包含一个数字</li>
-                                                    <li>至少包含一个小写字母</li>
-                                                    <li>至少包含一个大写字母</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                        <button type="submit" class="btn btn-warning">重置密码</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal fade" id="transferModal{{ email.id }}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form method="POST" action="{{ url_for('transfer_email', email_id=email.id) }}">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">转移邮箱所有权</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="alert alert-info">
-                                            <strong>注意：</strong>转移后该邮箱将归新用户所有，请谨慎操作！
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="target_uid" class="form-label">目标用户UID</label>
-                                            <input type="text" class="form-control" id="target_uid" name="target_uid" required placeholder="请输入对方用户的UID">
-                                        </div>
-                                        {% if recaptcha_enabled and recaptcha_site_key %}
-                                        <div class="mb-3">
-                                            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                        <button type="submit" class="btn btn-info">确认转移</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                     {% endfor %}
                 </div>
                 {% else %}
@@ -260,4 +197,71 @@
         </div>
     </div>
 </div>
+
+{% if emails %}
+{% for email in emails %}
+<div class="modal fade" id="resetModal{{ email.id }}" tabindex="-1" aria-labelledby="resetModalLabel{{ email.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('reset_email_password', email_id=email.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetModalLabel{{ email.id }}">重置邮箱密码</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="new_password{{ email.id }}" class="form-label">新密码</label>
+                        <input type="password" class="form-control" id="new_password{{ email.id }}" name="new_password" required>
+                        <div class="form-text text-muted small">
+                            <strong>密码要求：</strong>
+                            <ul class="mb-0 mt-1">
+                                <li>至少6个字符</li>
+                                <li>至少包含一个数字</li>
+                                <li>至少包含一个小写字母</li>
+                                <li>至少包含一个大写字母</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-warning">重置密码</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="transferModal{{ email.id }}" tabindex="-1" aria-labelledby="transferModalLabel{{ email.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('transfer_email', email_id=email.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="transferModalLabel{{ email.id }}">转移邮箱所有权</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <strong>注意：</strong>转移后该邮箱将归新用户所有，请谨慎操作！
+                    </div>
+                    <div class="mb-3">
+                        <label for="target_uid{{ email.id }}" class="form-label">目标用户UID</label>
+                        <input type="text" class="form-control" id="target_uid{{ email.id }}" name="target_uid" required placeholder="请输入对方用户的UID">
+                    </div>
+                    {% if recaptcha_enabled and recaptcha_site_key %}
+                    <div class="mb-3">
+                        <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-info">确认转移</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
 {% endblock %}
