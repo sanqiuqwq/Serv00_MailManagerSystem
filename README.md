@@ -90,7 +90,7 @@ python app.py
 | DB_USER | 数据库用户名 | root |
 | DB_PASSWORD | 数据库密码 | password |
 | DB_NAME | 数据库名称 | email_registration |
-| SERV00_PANEL | serv00面板域名 | panel15.serv00.com |
+| SERV00_PANEL | serv00面板域名 | panel.serv00.com |
 | SERV00_USERNAME | serv00用户名 | your_username |
 | SERV00_PASSWORD | serv00密码 | your_password |
 | RECAPTCHA_SITE_KEY | reCAPTCHA Site Key | your_site_key |
