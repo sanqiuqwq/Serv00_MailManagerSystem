@@ -45,7 +45,7 @@ python app.py
 
 6.根据提示更新.env配置文件
 
-7. 更新数据库（建议每次更新都使用）：
+7.更新数据库（建议每次更新都使用）：
 ```bash
 python update_db.py
 ```
@@ -56,7 +56,7 @@ python update_db.py
 
 - 用户名: admin
 - 密码: admin123（可在 .env 中配置）
-- 邮箱: admin@example.com
+- 邮箱: admin@example.com（建议更改真实邮箱，便于后期找回密码）
 
 **注意：首次运行后请立即修改Owner密码！**
 
