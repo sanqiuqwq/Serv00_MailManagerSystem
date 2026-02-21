@@ -1,0 +1,68 @@
+{% extends "admin/base.html" %}
+
+{% block title %}管理后台 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>管理后台概览</h2>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="card-title">{{ user_count }}</h3>
+                <p class="card-text">注册用户</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="card-title">{{ email_count }}</h3>
+                <p class="card-text">已创建邮箱</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 class="mt-5">数据库清理</h3>
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <p class="mb-3">
+                    <strong>待清理项目：</strong><br>
+                    过期验证令牌：{{ expired_tokens_count }} 个<br>
+                    已关闭超过7天的工单：{{ closed_tickets_count }} 个<br>
+                    未验证超过2天的账户：{{ unverified_users_count }} 个
+                </p>
+                <form method="POST" action="{{ url_for('admin_cleanup_all') }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('确定要清理所有数据吗？')">
+                        全部清理
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_cleanup_tokens') }}" class="d-inline ms-2">
+                    <button type="submit" class="btn btn-warning" onclick="return confirm('确定要清理过期验证令牌吗？')">
+                        清理过期令牌
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_cleanup_tickets') }}" class="d-inline ms-2">
+                    <button type="submit" class="btn btn-warning" onclick="return confirm('确定要清理已关闭超过7天的工单吗？')">
+                        清理关闭工单(>7天)
+                    </button>
+                </form>
+                {% if current_user.is_owner() %}
+                <form method="POST" action="{{ url_for('admin_cleanup_all_tickets') }}" class="d-inline ms-2">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('确定要删除所有已关闭工单吗？此操作不可恢复！')">
+                        删除所有关闭工单
+                    </button>
+                </form>
+                {% endif %}
+                <form method="POST" action="{{ url_for('admin_cleanup_users') }}" class="d-inline ms-2">
+                    <button type="submit" class="btn btn-warning" onclick="return confirm('确定要清理未验证账户吗？')">
+                        清理未验证账户
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

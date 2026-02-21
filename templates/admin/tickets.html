@@ -1,0 +1,46 @@
+{% extends "admin/base.html" %}
+
+{% block title %}工单管理 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>工单管理</h2>
+
+{% if tickets %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>标题</th>
+                <th>用户</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr>
+                <td>{{ ticket.id }}</td>
+                <td>{{ ticket.title }}</td>
+                <td>{{ ticket.user.username }}</td>
+                <td>
+                    {% if ticket.status == 'open' %}
+                    <span class="badge bg-success">进行中</span>
+                    {% else %}
+                    <span class="badge bg-secondary">已关闭</span>
+                    {% endif %}
+                </td>
+                <td>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-primary">查看</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">暂无工单</div>
+{% endif %}
+{% endblock %}

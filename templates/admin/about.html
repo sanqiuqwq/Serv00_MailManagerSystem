@@ -1,0 +1,19 @@
+{% extends "admin/base.html" %}
+
+{% block title %}关于页面 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>关于页面管理</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="content" class="form-label">关于页面内容</label>
+                <textarea class="form-control" id="content" name="content" rows="10" required>{{ about_page.content }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">保存</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

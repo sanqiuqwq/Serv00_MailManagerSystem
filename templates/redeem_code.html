@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}卡密兑换 - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">卡密兑换</h5>
+            </div>
+            <div class="card-body">
+                {% if site_settings.purchase_code_url %}
+                <div class="alert alert-info mb-3">
+                    没有卡密？<a href="{{ site_settings.purchase_code_url }}" target="_blank" class="alert-link">立即购买</a>
+                </div>
+                {% endif %}
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="code" class="form-label">请输入卡密</label>
+                        <input type="text" class="form-control" id="code" name="code" required placeholder="请输入卡密">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">兑换</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

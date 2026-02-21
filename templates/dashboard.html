@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}用户中心 - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">账户信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>用户名:</strong> {{ current_user.username }}</p>
+                        <p><strong>UID:</strong> {{ current_user.uid }}</p>
+                        <p><strong>邮箱:</strong> {{ current_user.email }}</p>
+                        <p><strong>验证状态:</strong> 
+                            {% if current_user.is_verified %}
+                            <span class="badge bg-success">已验证</span>
+                            {% else %}
+                            <span class="badge bg-warning">未验证</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>用户组:</strong> 
+                            {% if current_user.role == 'owner' %}
+                            <span class="badge bg-danger">Owner</span>
+                            {% elif current_user.role == 'admin' %}
+                            <span class="badge bg-primary">管理员</span>
+                            {% elif current_user.role == 'pro' %}
+                            <span class="badge bg-warning">Pro用户</span>
+                            {% if current_user.pro_expires_at %}
+                            (到期: {{ current_user.pro_expires_at.strftime('%Y-%m-%d') }})
+                            {% endif %}
+                            {% else %}
+                            <span class="badge bg-secondary">普通用户</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>邮箱配额:</strong> {{ current_user.get_email_count() }}/{{ current_user.get_max_emails() }}
+                            {% if current_user.temp_expires_at and current_user.temp_expires_at > datetime.utcnow() %}
+                            <span class="badge bg-info ms-2">临时+{{ current_user.temp_extra_emails }} (到{{ current_user.temp_expires_at.strftime('%Y-%m-%d') }})</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>注册时间:</strong> {{ current_user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <a href="{{ url_for('change_password') }}" class="btn btn-warning mb-2">修改密码</a>
+                        <a href="{{ url_for('redeem_code') }}" class="btn btn-info mb-2">卡密兑换</a>
+                        {% if site_settings.purchase_code_url %}
+                        <a href="{{ site_settings.purchase_code_url }}" target="_blank" class="btn btn-success mb-2">购买卡密</a>
+                        {% endif %}
+                        {% if site_settings.tg_group_url %}
+                        <a href="{{ site_settings.tg_group_url }}" target="_blank" class="btn btn-info mb-2"><i class="fa fa-telegram"></i> 加入TG交流群</a>
+                        {% endif %}
+                        <a href="{{ url_for('tickets') }}" class="btn btn-info mb-2">工单中心</a>
+                        {% if not current_user.is_verified %}
+                        <form method="POST" action="{{ url_for('resend_verification') }}" class="d-inline">
+                            <button type="submit" class="btn btn-secondary mb-2">重新发送验证邮件</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if not current_user.is_verified %}
+                <div class="alert alert-warning mt-3 mb-0">
+                    <strong>提示：</strong>您的邮箱尚未验证，请先验证邮箱后再创建邮箱。
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">邮件服务器信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>SMTP server:</strong> mail15.serv00.com</p>
+                        <p><strong>IMAP server:</strong> mail15.serv00.com</p>
+                        <p><strong>POP3 server:</strong> mail15.serv00.com</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>网页版邮箱：</strong><a href="https://mail.nekoqwq.com" target="_blank">https://mail.nekoqwq.com</a></p>
+                        <p class="text-muted">所有后缀均可使用</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">创建新邮箱</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('create_email') }}">
+                    <div class="mb-3">
+                        <label for="prefix" class="form-label">邮箱前缀</label>
+                        <input type="text" class="form-control" id="prefix" name="prefix" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="domain_id" class="form-label">选择域名</label>
+                        <select class="form-select" id="domain_id" name="domain_id" required>
+                            {% for domain in domains %}
+                            <option value="{{ domain.id }}">{{ domain.domain }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email_password" class="form-label">邮箱密码</label>
+                        <input type="password" class="form-control" id="email_password" name="email_password" required>
+                        <div class="form-text text-muted small">
+                            <strong>密码要求：</strong>
+                            <ul class="mb-0 mt-1">
+                                <li>至少6个字符</li>
+                                <li>至少包含一个数字</li>
+                                <li>至少包含一个小写字母</li>
+                                <li>至少包含一个大写字母</li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% if recaptcha_site_key %}
+                    <div class="mb-3">
+                        <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+                    </div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-success w-100">创建邮箱</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">我的邮箱</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning small mb-3">
+                    <i class="fa fa-info-circle"></i> 删除邮箱请发工单联系管理员
+                </div>
+                {% if emails %}
+                <div class="list-group">
+                    {% for email in emails %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ email.email_address }}</h6>
+                                <small>密码: {{ email.email_password }}</small>
+                                {% if email.is_disabled %}
+                                <span class="badge bg-danger ms-2">已禁用</span>
+                                {% endif %}
+                            </div>
+                            {% if not email.is_disabled %}
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#resetModal{{ email.id }}">重置密码</button>
+                                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#transferModal{{ email.id }}">PUSH</button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="resetModal{{ email.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="POST" action="{{ url_for('reset_email_password', email_id=email.id) }}">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">重置邮箱密码</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="new_password" class="form-label">新密码</label>
+                                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                            <div class="form-text text-muted small">
+                                                <strong>密码要求：</strong>
+                                                <ul class="mb-0 mt-1">
+                                                    <li>至少6个字符</li>
+                                                    <li>至少包含一个数字</li>
+                                                    <li>至少包含一个小写字母</li>
+                                                    <li>至少包含一个大写字母</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                        <button type="submit" class="btn btn-warning">重置密码</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="transferModal{{ email.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="POST" action="{{ url_for('transfer_email', email_id=email.id) }}">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">转移邮箱所有权</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="alert alert-info">
+                                            <strong>注意：</strong>转移后该邮箱将归新用户所有，请谨慎操作！
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="target_uid" class="form-label">目标用户UID</label>
+                                            <input type="text" class="form-control" id="target_uid" name="target_uid" required placeholder="请输入对方用户的UID">
+                                        </div>
+                                        {% if recaptcha_enabled and recaptcha_site_key %}
+                                        <div class="mb-3">
+                                            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                        <button type="submit" class="btn btn-info">确认转移</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">暂无邮箱</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="fa fa-info-circle"></i> 有问题请发工单联系管理员
+        </div>
+    </div>
+</div>
+{% endblock %}

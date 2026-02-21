@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}用户协议 - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>用户协议</h2>
+    <div class="card mt-4">
+        <div class="card-body">
+            {{ user_agreement.content|safe }}
+        </div>
+    </div>
+    <div class="mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">返回首页</a>
+    </div>
+</div>
+{% endblock %}

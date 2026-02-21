@@ -1,0 +1,20 @@
+{% extends "admin/base.html" %}
+
+{% block title %}用户协议 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>用户协议管理</h2>
+<p class="text-muted mb-4">最后更新时间：{{ user_agreement.updated_at.strftime('%Y-%m-%d %H:%M:%S') if user_agreement.updated_at else '未更新' }}</p>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="content" class="form-label">用户协议内容</label>
+                <textarea class="form-control" id="content" name="content" rows="20" required>{{ user_agreement.content }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">保存</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

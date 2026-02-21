@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}工单 #{{ ticket.id }} - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ ticket.title }}</h5>
+                <div>
+                    {% if ticket.status == 'open' %}
+                    <span class="badge bg-success me-2">进行中</span>
+                    {% else %}
+                    <span class="badge bg-secondary me-2">已关闭</span>
+                    {% endif %}
+                    {% if ticket.status == 'open' %}
+                    <a href="{{ url_for('close_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-danger">关闭工单</a>
+                    {% else %}
+                    <a href="{{ url_for('open_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-success">重新打开</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <small class="text-muted">
+                        创建时间: {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }} |
+                        {% if current_user.is_admin %}
+                        用户: {{ ticket.user.username }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">对话记录</h6>
+            </div>
+            <div class="card-body">
+                {% for reply in ticket.replies %}
+                <div class="card mb-3 {% if reply.is_admin %}border-info{% else %}border-secondary{% endif %}">
+                    <div class="card-header {% if reply.is_admin %}bg-info text-white{% else %}bg-secondary text-white{% endif %}">
+                        <strong>{{ reply.user.username }}</strong>
+                        {% if reply.is_admin %}
+                        <span class="badge bg-light text-dark ms-2">管理员</span>
+                        {% endif %}
+                        <span class="float-end">{{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <div class="card-body">
+                        {{ reply.content|safe }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if ticket.status == 'open' %}
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">回复</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <textarea class="form-control" id="content" name="content" rows="4" placeholder="输入回复内容..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">发送</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

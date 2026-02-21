@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group">
+            {% if current_user.is_owner() %}
+            <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                概览
+            </a>
+            {% endif %}
+            <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_users' or request.endpoint == 'admin_change_role' %}active{% endif %}">
+                用户管理
+            </a>
+            <a href="{{ url_for('admin_codes') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_codes' or request.endpoint == 'admin_create_code' or request.endpoint == 'admin_delete_code' or request.endpoint == 'admin_cleanup_codes' %}active{% endif %}">
+                卡密管理
+            </a>
+            {% if current_user.is_owner() %}
+            <a href="{{ url_for('admin_domains') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_domains' %}active{% endif %}">
+                域名管理
+            </a>
+            {% endif %}
+            {% if current_user.is_owner() %}
+            <a href="{{ url_for('admin_emails') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_emails' %}active{% endif %}">
+                邮箱管理
+            </a>
+            {% endif %}
+            <a href="{{ url_for('admin_tickets') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_tickets' %}active{% endif %}">
+                工单管理
+            </a>
+            {% if current_user.is_owner() %}
+            <a href="{{ url_for('admin_announcements') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_announcements' %}active{% endif %}">
+                公告管理
+            </a>
+            <a href="{{ url_for('admin_prefix_blacklist') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_prefix_blacklist' or request.endpoint == 'admin_add_prefix_blacklist' or request.endpoint == 'admin_delete_prefix_blacklist' %}active{% endif %}">
+                前缀黑名单
+            </a>
+            <a href="{{ url_for('admin_email_suffixes') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_email_suffixes' or request.endpoint == 'admin_add_email_suffix' or request.endpoint == 'admin_delete_email_suffix' %}active{% endif %}">
+                邮箱后缀限制
+            </a>
+            <a href="{{ url_for('admin_about') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_about' %}active{% endif %}">
+                关于页面
+            </a>
+            <a href="{{ url_for('admin_agreement') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_agreement' %}active{% endif %}">
+                用户协议
+            </a>
+            <a href="{{ url_for('admin_settings') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_settings' %}active{% endif %}">
+                站点设置
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-9">
+        {% block admin_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "admin/base.html" %}
+
+{% block title %}站点设置 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>站点设置</h2>
+
+<div class="card mt-4">
+    <div class="card-header">
+        基本设置
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="site_name" class="form-label">站点名称</label>
+                <input type="text" class="form-control" id="site_name" name="site_name" value="{{ site_settings.site_name }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="site_description" class="form-label">站点描述</label>
+                <textarea class="form-control" id="site_description" name="site_description" rows="3" required>{{ site_settings.site_description }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="site_url" class="form-label">网站域名</label>
+                <input type="text" class="form-control" id="site_url" name="site_url" value="{{ site_settings.site_url }}" required>
+                <div class="form-text">例如：https://example.com 或 http://localhost:5000</div>
+            </div>
+            <div class="mb-3">
+                <label for="purchase_code_url" class="form-label">购买卡密链接</label>
+                <input type="text" class="form-control" id="purchase_code_url" name="purchase_code_url" value="{{ site_settings.purchase_code_url or '' }}">
+                <div class="form-text">留空则不显示购买卡密按钮，例如：https://example.com/buy</div>
+            </div>
+            <div class="mb-3">
+                <label for="tg_group_url" class="form-label">TG交流群链接</label>
+                <input type="text" class="form-control" id="tg_group_url" name="tg_group_url" value="{{ site_settings.tg_group_url or '' }}">
+                <div class="form-text">留空则不显示TG交流群按钮，例如：https://t.me/groupname</div>
+            </div>
+            <div class="mb-3">
+                <label for="default_user_max_emails" class="form-label">普通用户默认邮箱数量</label>
+                <input type="number" class="form-control" id="default_user_max_emails" name="default_user_max_emails" value="{{ site_settings.default_user_max_emails }}" required min="1">
+            </div>
+            <div class="mb-3">
+                <label for="default_pro_max_emails" class="form-label">Pro用户默认邮箱数量</label>
+                <input type="number" class="form-control" id="default_pro_max_emails" name="default_pro_max_emails" value="{{ site_settings.default_pro_max_emails }}" required min="1">
+            </div>
+            <div class="mb-3">
+                <label for="min_user_prefix_length" class="form-label">普通用户邮箱前缀最少字符数</label>
+                <input type="number" class="form-control" id="min_user_prefix_length" name="min_user_prefix_length" value="{{ site_settings.min_user_prefix_length }}" required min="1">
+            </div>
+            <div class="mb-3">
+                <label for="min_pro_prefix_length" class="form-label">Pro用户邮箱前缀最少字符数</label>
+                <input type="number" class="form-control" id="min_pro_prefix_length" name="min_pro_prefix_length" value="{{ site_settings.min_pro_prefix_length }}" required min="1">
+            </div>
+            <button type="submit" class="btn btn-primary">保存设置</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

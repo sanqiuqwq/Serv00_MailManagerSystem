@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}工单中心 - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>工单中心</h2>
+            <a href="{{ url_for('create_ticket') }}" class="btn btn-success">创建工单</a>
+        </div>
+    </div>
+</div>
+
+{% if tickets %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="list-group">
+            {% for ticket in tickets %}
+            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ ticket.title }}</h5>
+                    <small>
+                        {% if ticket.status == 'open' %}
+                        <span class="badge bg-success">进行中</span>
+                        {% else %}
+                        <span class="badge bg-secondary">已关闭</span>
+                        {% endif %}
+                    </small>
+                </div>
+                <p class="mb-1">
+                    {% if current_user.is_admin %}
+                    <small>用户: {{ ticket.user.username }}</small>
+                    {% endif %}
+                </p>
+                <small>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info text-center">
+            暂无工单
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

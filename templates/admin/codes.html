@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+
+{% block title %}卡密管理 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>卡密管理</h2>
+
+<div class="mb-3">
+    <a href="{{ url_for('admin_create_code') }}" class="btn btn-success">创建卡密</a>
+    <a href="{{ url_for('admin_cleanup_codes') }}" class="btn btn-warning" onclick="return confirm('确定要删除过期和已使用2天以上的卡密吗？')">清理过期/已使用卡密</a>
+</div>
+
+<div class="mb-3">
+    <form method="GET" action="{{ url_for('admin_codes') }}" class="d-flex">
+        <input type="text" name="search" class="form-control me-2" placeholder="搜索卡密..." value="{{ search }}">
+        <button type="submit" class="btn btn-primary">搜索</button>
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>卡密</th>
+                <th>有效期</th>
+                <th>增加邮箱数量</th>
+                <th>使用次数</th>
+                <th>状态</th>
+                <th>过期时间</th>
+                <th>使用用户</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for code in codes %}
+            <tr>
+                <td><code>{{ code.code }}</code></td>
+                <td>
+                    {% if code.is_permanent %}
+                    永久
+                    {% elif code.duration_days %}
+                    {{ code.duration_days }}天
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td>
+                    +{{ code.extra_emails }}
+                </td>
+                <td>
+                    {{ code.used_count }} / {{ code.max_uses if code.max_uses > 0 else '∞' }}
+                </td>
+                <td>
+                    {% if code.is_used %}
+                    <span class="badge bg-secondary">已使用</span>
+                    {% elif code.is_expired() %}
+                    <span class="badge bg-danger">已过期</span>
+                    {% else %}
+                    <span class="badge bg-success">可用</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if code.expires_at %}
+                    {{ code.expires_at.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if code.user %}
+                    {{ code.user.username }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td>{{ code.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a href="{{ url_for('admin_delete_code', code_id=code.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除此卡密吗？')">删除</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

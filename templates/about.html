@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}关于 - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">关于我们</h5>
+            </div>
+            <div class="card-body">
+                {{ about_page.content|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "admin/base.html" %}
+
+{% block title %}前缀黑名单 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>前缀黑名单</h2>
+
+<div class="card mb-4">
+    <div class="card-header">
+        添加黑名单前缀
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_add_prefix_blacklist') }}">
+            <div class="row">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="prefix" placeholder="输入要禁止的前缀（例如：system, report, admin）" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">添加</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="alert alert-info small">
+    <strong>说明：</strong>禁止的前缀会阻止包含该前缀的邮箱注册。例如：添加 "system" 会阻止 "system@xxx.com"、"system123@xxx.com" 等。
+</div>
+
+<div class="card">
+    <div class="card-header">
+        黑名单列表
+    </div>
+    <div class="card-body">
+        {% if blacklist %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>前缀</th>
+                        <th>添加时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in blacklist %}
+                    <tr>
+                        <td><code>{{ item.prefix }}</code></td>
+                        <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_delete_prefix_blacklist', item_id=item.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除这个前缀吗？')">删除</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">暂无黑名单前缀</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

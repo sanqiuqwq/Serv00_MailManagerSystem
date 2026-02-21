@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">欢迎来到 {{ site_settings.site_name }}</h1>
+            <p class="lead">{{ site_settings.site_description }}</p>
+            <hr class="my-4">
+            {% if not current_user.is_authenticated %}
+            <p>注册账户即可获得免费邮箱！</p>
+            <a class="btn btn-primary btn-lg" href="{{ url_for('register') }}" role="button">立即注册</a>
+            <a class="btn btn-outline-secondary btn-lg ms-2" href="{{ url_for('login') }}" role="button">登录</a>
+            {% if site_settings.tg_group_url %}
+            <a class="btn btn-info btn-lg ms-2" href="{{ site_settings.tg_group_url }}" target="_blank" role="button"><i class="fa fa-telegram"></i> 加入TG交流群</a>
+            {% endif %}
+            {% else %}
+            <p>去用户中心创建邮箱！</p>
+            <a class="btn btn-primary btn-lg" href="{{ url_for('dashboard') }}" role="button">用户中心</a>
+            {% if site_settings.purchase_code_url %}
+            <a class="btn btn-success btn-lg ms-2" href="{{ site_settings.purchase_code_url }}" target="_blank" role="button">购买卡密</a>
+            {% endif %}
+            {% if site_settings.tg_group_url %}
+            <a class="btn btn-info btn-lg ms-2" href="{{ site_settings.tg_group_url }}" target="_blank" role="button"><i class="fa fa-telegram"></i> 加入TG交流群</a>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if announcements %}
+<div class="row mt-5">
+    <div class="col-md-12">
+        <h2>公告</h2>
+        {% for announcement in announcements %}
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                {{ announcement.title }}
+                <small class="float-end">{{ announcement.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ announcement.content }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

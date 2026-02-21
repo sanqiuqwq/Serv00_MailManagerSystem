@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+
+{% block title %}邮箱管理 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>邮箱管理</h2>
+
+<div class="table-responsive mt-4">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>邮箱地址</th>
+                <th>所有者</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for email in emails %}
+            <tr>
+                <td>{{ email.id }}</td>
+                <td>{{ email.email_address }}</td>
+                <td>{{ email.owner.username }}</td>
+                <td>
+                    {% if email.is_disabled %}
+                    <span class="badge bg-danger">已禁用</span>
+                    {% else %}
+                    <span class="badge bg-success">正常</span>
+                    {% endif %}
+                </td>
+                <td>{{ email.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    {% if email.is_disabled %}
+                    <a href="{{ url_for('admin_enable_email', email_id=email.id) }}" class="btn btn-sm btn-success">启用</a>
+                    {% else %}
+                    <a href="{{ url_for('admin_disable_email', email_id=email.id) }}" class="btn btn-sm btn-warning">禁用</a>
+                    {% endif %}
+                    <a href="{{ url_for('admin_delete_email', email_id=email.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除此邮箱吗？')">删除</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

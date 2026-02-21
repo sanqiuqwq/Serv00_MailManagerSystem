@@ -1,0 +1,88 @@
+{% extends "admin/base.html" %}
+
+{% block title %}创建卡密 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>创建卡密</h2>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">有效期</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="is_permanent" id="permanent" value="true">
+                    <label class="form-check-label" for="permanent">永久有效</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="is_permanent" id="not_permanent" value="false" checked>
+                    <label class="form-check-label" for="not_permanent">限时</label>
+                </div>
+            </div>
+
+            <div class="mb-3" id="duration_div">
+                <label for="duration" class="form-label">天数</label>
+                <select class="form-select" id="duration" name="duration">
+                    <option value="1">1天</option>
+                    <option value="2">2天</option>
+                    <option value="3">3天</option>
+                    <option value="4">4天</option>
+                    <option value="5">5天</option>
+                    <option value="6">6天</option>
+                    <option value="7">7天</option>
+                    <option value="8">8天</option>
+                    <option value="9">9天</option>
+                    <option value="10">10天</option>
+                    <option value="11">11天</option>
+                    <option value="12">12天</option>
+                    <option value="13">13天</option>
+                    <option value="14">14天</option>
+                    <option value="15">15天</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="extra_emails" class="form-label">增加邮箱数量</label>
+                <input type="number" class="form-control" id="extra_emails" name="extra_emails" value="1" min="1" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="max_uses" class="form-label">使用次数（0为无限）</label>
+                <input type="number" class="form-control" id="max_uses" name="max_uses" value="1" min="0" required>
+            </div>
+
+            <div class="mb-3" id="expires_div">
+                <label for="expires_days" class="form-label">有效期（天，0为永不过期）(此处有效期指所使用卡密新增邮箱最大创建次数的有效期)</label>
+                <input type="number" class="form-control" id="expires_days" name="expires_days" value="0" min="0">
+            </div>
+
+            <div class="mb-3">
+                <label for="count" class="form-label">生成数量</label>
+                <input type="number" class="form-control" id="count" name="count" value="1" min="1" max="100">
+            </div>
+
+            <div class="mb-3">
+                <label for="custom_code" class="form-label">自定义卡密（可选，单个生成时可用，包括中文）</label>
+                <input type="text" class="form-control" id="custom_code" name="custom_code" placeholder="留空则自动生成">
+            </div>
+
+            <button type="submit" class="btn btn-success">创建</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const permanentRadio = document.getElementById('permanent');
+    const notPermanentRadio = document.getElementById('not_permanent');
+    const durationDiv = document.getElementById('duration_div');
+    
+    function toggleDuration() {
+        durationDiv.style.display = permanentRadio.checked ? 'none' : 'block';
+    }
+    
+    permanentRadio.addEventListener('change', toggleDuration);
+    notPermanentRadio.addEventListener('change', toggleDuration);
+});
+</script>
+{% endblock %}

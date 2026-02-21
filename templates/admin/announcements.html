@@ -1,0 +1,64 @@
+{% extends "admin/base.html" %}
+
+{% block title %}公告管理 - {{ site_settings.site_name }}{% endblock %}
+
+{% block admin_content %}
+<h2>公告管理</h2>
+
+<div class="card mt-4">
+    <div class="card-header">
+        添加新公告
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_add_announcement') }}">
+            <div class="mb-3">
+                <label for="title" class="form-label">标题</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="mb-3">
+                <label for="content" class="form-label">内容</label>
+                <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">添加公告</button>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive mt-4">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>标题</th>
+                <th>内容</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for announcement in announcements %}
+            <tr>
+                <td>{{ announcement.id }}</td>
+                <td>{{ announcement.title }}</td>
+                <td>{{ announcement.content[:50] }}{% if announcement.content|length > 50 %}...{% endif %}</td>
+                <td>
+                    {% if announcement.is_active %}
+                    <span class="badge bg-success">显示</span>
+                    {% else %}
+                    <span class="badge bg-danger">隐藏</span>
+                    {% endif %}
+                </td>
+                <td>{{ announcement.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a href="{{ url_for('admin_toggle_announcement', announcement_id=announcement.id) }}" class="btn btn-sm btn-warning">
+                        {% if announcement.is_active %}隐藏{% else %}显示{% endif %}
+                    </a>
+                    <a href="{{ url_for('admin_delete_announcement', announcement_id=announcement.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除此公告吗？')">删除</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
