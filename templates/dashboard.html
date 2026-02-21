@@ -79,12 +79,12 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>SMTP server:</strong> mail15.serv00.com</p>
-                        <p><strong>IMAP server:</strong> mail15.serv00.com</p>
-                        <p><strong>POP3 server:</strong> mail15.serv00.com</p>
+                        <p><strong>SMTP server:</strong> {{ site_settings.smtp_server }}</p>
+                        <p><strong>IMAP server:</strong> {{ site_settings.imap_server }}</p>
+                        <p><strong>POP3 server:</strong> {{ site_settings.pop3_server }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>网页版邮箱：</strong><a href="https://mail.nekoqwq.com" target="_blank">https://mail.nekoqwq.com</a></p>
+                        <p><strong>网页版邮箱：</strong><a href="{{ site_settings.webmail_url }}" target="_blank">{{ site_settings.webmail_url }}</a></p>
                         <p class="text-muted">所有后缀均可使用</p>
                     </div>
                 </div>

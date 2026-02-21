@@ -200,6 +200,10 @@ class SiteSettings(db.Model):
     default_pro_max_emails = db.Column(db.Integer, default=5)
     min_user_prefix_length = db.Column(db.Integer, default=7)
     min_pro_prefix_length = db.Column(db.Integer, default=3)
+    smtp_server = db.Column(db.String(200), default='smtp.example.com')
+    imap_server = db.Column(db.String(200), default='imap.example.com')
+    pop3_server = db.Column(db.String(200), default='pop3.example.com')
+    webmail_url = db.Column(db.String(500), default='https://mail.example.com')
 
 
 class PrefixBlacklist(db.Model):
@@ -1441,15 +1445,21 @@ def admin_settings():
         db.session.commit()
 
     if request.method == 'POST':
-        settings.site_name = request.form['site_name']
-        settings.site_description = request.form['site_description']
-        settings.site_url = request.form['site_url']
-        settings.purchase_code_url = request.form.get('purchase_code_url', '')
-        settings.tg_group_url = request.form.get('tg_group_url', '')
-        settings.default_user_max_emails = int(request.form['default_user_max_emails'])
-        settings.default_pro_max_emails = int(request.form['default_pro_max_emails'])
-        settings.min_user_prefix_length = int(request.form['min_user_prefix_length'])
-        settings.min_pro_prefix_length = int(request.form['min_pro_prefix_length'])
+        if 'site_name' in request.form:
+            settings.site_name = request.form['site_name']
+            settings.site_description = request.form['site_description']
+            settings.site_url = request.form['site_url']
+            settings.purchase_code_url = request.form.get('purchase_code_url', '')
+            settings.tg_group_url = request.form.get('tg_group_url', '')
+            settings.default_user_max_emails = int(request.form['default_user_max_emails'])
+            settings.default_pro_max_emails = int(request.form['default_pro_max_emails'])
+            settings.min_user_prefix_length = int(request.form['min_user_prefix_length'])
+            settings.min_pro_prefix_length = int(request.form['min_pro_prefix_length'])
+        elif 'smtp_server' in request.form:
+            settings.smtp_server = request.form['smtp_server']
+            settings.imap_server = request.form['imap_server']
+            settings.pop3_server = request.form['pop3_server']
+            settings.webmail_url = request.form['webmail_url']
         db.session.commit()
         flash('站点设置已更新', 'success')
 
