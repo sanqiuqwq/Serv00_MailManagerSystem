@@ -1,6 +1,39 @@
-# 邮箱注册系统
+# Serv00邮箱注册管理系统
+
+Demo：https://reg.nekoqwq.com/
 
 基于 serv00 的邮箱注册和管理系统，包含用户端和管理后台。
+
+**PS：程序AI写的，有点bug见谅(**
+
+## 安装步骤
+
+1. 克隆项目并安装依赖（建议从release下载）：
+```bash
+pip install -r requirements.txt
+```
+国内镜像加速：
+https://pan.nekoqwq.com/s/Bnhx
+
+2. 配置环境变量：
+```bash
+cp .env.example .env
+```
+编辑 `.env` 文件，填入您的配置信息。
+
+
+3. 运行项目：
+```bash
+python app.py
+```
+
+## 默认Owner账户
+
+- 用户名: admin
+- 密码: admin123（可在 .env 中配置）
+- 邮箱: admin@example.com
+
+**注意：首次运行后请立即修改Owner密码！**
 
 ## 功能特性
 
@@ -42,37 +75,6 @@
 - 可在用户管理中单独修改每个用户的邮箱上限
 - 卡密兑换增加额外邮箱配额
 
-## 安装步骤
-
-1. 克隆项目并安装依赖：
-```bash
-pip install -r requirements.txt
-```
-
-2. 配置环境变量：
-```bash
-cp .env.example .env
-```
-编辑 `.env` 文件，填入您的配置信息。
-
-3. 创建 MySQL 数据库：
-```sql
-CREATE DATABASE email_registration CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-4. 运行项目：
-```bash
-python app.py
-```
-
-## 默认Owner账户
-
-- 用户名: admin
-- 密码: admin123（可在 .env 中配置）
-- 邮箱: admin@example.com
-
-**注意：首次运行后请立即修改Owner密码！**
-
 ## 环境变量说明
 
 | 变量名 | 说明 | 示例 |
@@ -98,27 +100,7 @@ python app.py
 | ADMIN_EMAIL | Owner邮箱 | admin@example.com |
 | ADMIN_PASSWORD | Owner密码 | admin123 |
 
-## serv00 API 接口说明
 
-### 1. 登录页面获取
-- 地址: `https://{panel}/login/?next=/mail/add`
-- 方法: GET
-
-### 2. 登录提交
-- 地址: `https://{panel}/login/`
-- 方法: POST
-
-### 3. 邮箱创建页面获取
-- 地址: `https://{panel}/mail/add`
-- 方法: GET
-
-### 4. 邮箱创建提交
-- 地址: `https://{panel}/mail/add`
-- 方法: POST
-
-### 5. 邮箱列表页面
-- 地址: `https://{panel}/mail`
-- 方法: GET
 
 ## 项目结构
 
@@ -162,125 +144,7 @@ Email_Distribution/
 └── static/                    # 静态文件（如需要）
 ```
 
-## 数据库模型
 
-### User（用户表）
-- id: 主键
-- username: 用户名
-- email: 邮箱
-- password_hash: 密码哈希
-- is_admin: 是否为管理员（保留字段）
-- is_verified: 是否已验证邮箱
-- uid: 用户唯一ID
-- role: 用户角色（user/pro/owner）
-- max_emails: 最大邮箱数量
-- extra_emails: 额外邮箱数量（卡密兑换）
-- pro_expires_at: Pro到期时间
-- is_permanent: 是否永久Pro
-- temp_extra_emails: 临时额外邮箱
-- temp_expires_at: 临时额外邮箱到期时间
-- created_at: 创建时间
-
-### RegisteredEmail（已注册邮箱表）
-- id: 主键
-- email_address: 邮箱地址
-- email_password: 邮箱密码
-- prefix: 邮箱前缀
-- domain_id: 域名ID
-- user_id: 用户ID
-- is_disabled: 是否禁用
-- created_at: 创建时间
-
-### Domain（域名表）
-- id: 主键
-- domain: 域名
-- is_active: 是否激活
-- created_at: 创建时间
-
-### RedemptionCode（卡密表）
-- id: 主键
-- code: 卡密
-- extra_emails: 增加的邮箱数量
-- duration_days: 有效期天数
-- is_permanent: 是否永久
-- is_used: 是否已使用
-- max_uses: 最大使用次数
-- used_count: 已使用次数
-- expires_at: 过期时间
-- user_id: 最后使用的用户ID
-- used_at: 使用时间
-- created_at: 创建时间
-
-### Ticket（工单表）
-- id: 主键
-- title: 工单标题
-- user_id: 用户ID
-- status: 状态（open/closed）
-- created_at: 创建时间
-- closed_at: 关闭时间
-
-### TicketReply（工单回复表）
-- id: 主键
-- ticket_id: 工单ID
-- user_id: 用户ID
-- content: 回复内容
-- is_admin: 是否为管理员回复
-- created_at: 创建时间
-
-### Announcement（公告表）
-- id: 主键
-- title: 公告标题
-- content: 公告内容
-- is_active: 是否显示
-- created_at: 创建时间
-
-### SiteSettings（站点设置表）
-- id: 主键
-- site_name: 站点名称
-- site_description: 站点描述
-- site_url: 网站域名
-- purchase_code_url: 购买卡密链接
-- tg_group_url: TG交流群链接
-- default_user_max_emails: 普通用户默认邮箱数量
-- default_pro_max_emails: Pro用户默认邮箱数量
-- min_user_prefix_length: 普通用户前缀最小长度
-- min_pro_prefix_length: Pro用户前缀最小长度
-
-### PrefixBlacklist（前缀黑名单表）
-- id: 主键
-- prefix: 禁止的前缀
-- created_at: 创建时间
-
-### AllowedEmailSuffix（允许邮箱后缀表）
-- id: 主键
-- suffix: 允许的后缀
-- created_at: 创建时间
-
-### AboutPage（关于页面）
-- id: 主键
-- content: 页面内容
-
-### UserAgreement（用户协议）
-- id: 主键
-- content: 协议内容
-
-### VerificationToken（验证令牌表）
-- id: 主键
-- token: 令牌
-- user_id: 用户ID
-- token_type: 令牌类型
-- expires_at: 过期时间
-- is_used: 是否已使用
-- created_at: 创建时间
-
-## 安全提示
-
-1. 请妥善保管.env文件，不要提交到版本控制
-2. 首次运行后立即修改Owner密码
-3. 配置强SECRET_KEY
-4. 定期备份数据库
-5. 及时清理过期和已使用的卡密
-6. 监控异常登录和操作
 
 ## 许可证
 
