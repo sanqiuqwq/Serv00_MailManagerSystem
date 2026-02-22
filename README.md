@@ -110,13 +110,18 @@ python update_db.py
 | DB_USER | 数据库用户名 | root |
 | DB_PASSWORD | 数据库密码 | password |
 | DB_NAME | 数据库名称 | email_registration |
-| SERV00_PANEL | serv00面板域名 | panel.serv00.com |
+| SERV00_PANEL | serv00面板域名 | panel15.serv00.com |
 | SERV00_USERNAME | serv00用户名 | your_username |
 | SERV00_PASSWORD | serv00密码 | your_password |
 | RECAPTCHA_SITE_KEY | reCAPTCHA Site Key | your_site_key |
 | RECAPTCHA_SECRET_KEY | reCAPTCHA Secret Key | your_secret_key |
 | RECAPTCHA_USE_CN | 是否使用国内reCAPTCHA镜像 | true |
 | RECAPTCHA_ENABLED | 是否启用reCAPTCHA验证 | true |
+| NODELOC_ENABLED | 是否启用NodeLoc OAuth登录 | false |
+| NODELOC_URL | NodeLoc OAuth地址 | https://www.nodeloc.com |
+| NODELOC_CLIENT_ID | NodeLoc OAuth Client ID | your-client-id |
+| NODELOC_CLIENT_SECRET | NodeLoc OAuth Client Secret | your-client-secret |
+| NODELOC_REDIRECT_URI | NodeLoc OAuth回调地址 | http://localhost:5000/auth/nodeloc/callback |
 | SMTP_SERVER | SMTP服务器 | smtp.example.com |
 | SMTP_PORT | SMTP端口 | 587 |
 | SMTP_USERNAME | SMTP用户名 | noreply@example.com |
@@ -124,7 +129,6 @@ python update_db.py
 | ADMIN_USERNAME | Owner用户名 | admin |
 | ADMIN_EMAIL | Owner邮箱 | admin@example.com |
 | ADMIN_PASSWORD | Owner密码 | admin123 |
-
 
 
 ## 项目结构
