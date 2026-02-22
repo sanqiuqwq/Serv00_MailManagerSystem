@@ -221,6 +221,38 @@ TELEGRAM_BOT_TOKEN=你的Bot Token
 TELEGRAM_BOT_USERNAME=你的Bot用户名（例如：your_bot）
 ```
 
+## Google OAuth 2.0 使用说明
+
+### 配置步骤
+
+1. 创建 Google Cloud 项目：
+   - 访问：https://console.cloud.google.com/
+   - 点击"创建项目"
+
+2. 启用 OAuth 同意屏幕：
+   - 进入"API 和服务" → "OAuth 同意屏幕"
+   - 选择"外部"，点击"创建"
+   - 填写应用信息（应用名称、用户支持邮箱等）
+   - 添加授权范围（至少包含：email、profile、openid）
+   - 添加测试用户（如果是测试状态）
+
+3. 创建 OAuth 客户端凭据：
+   - 进入"API 和服务" → "凭据"
+   - 点击"创建凭据" → "OAuth 客户端 ID"
+   - 选择应用类型："Web 应用"
+   - 填写授权 JavaScript 来源（例如：`https://yourdomain.com`）
+   - 填写授权重定向 URI（例如：`https://yourdomain.com/auth/google/callback`）
+   - 点击"创建"，记录 Client ID 和 Client Secret
+
+4. 在 `.env` 中配置：
+```env
+GOOGLE_ENABLED=true
+GOOGLE_CLIENT_ID=你的Client ID
+GOOGLE_CLIENT_SECRET=你的Client Secret
+GOOGLE_REDIRECT_URI=https://你的域名/auth/google/callback
+```
+
+
 ## 许可证
 
 GNU General Public License v2.0 (GPL v2)
