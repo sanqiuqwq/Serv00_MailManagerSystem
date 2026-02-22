@@ -50,6 +50,13 @@
                             <span class="badge bg-secondary">未绑定</span>
                             {% endif %}
                         </p>
+                        <p><strong>Google绑定:</strong> 
+                            {% if current_user.google_id %}
+                            <span class="badge bg-success">已绑定</span>
+                            {% else %}
+                            <span class="badge bg-secondary">未绑定</span>
+                            {% endif %}
+                        </p>
                         <p><strong>邮箱配额:</strong> {{ current_user.get_email_count() }}/{{ current_user.get_max_emails() }}
                             {% if current_user.temp_expires_at and current_user.temp_expires_at > datetime.utcnow() %}
                             <span class="badge bg-info ms-2">临时+{{ current_user.temp_extra_emails }} (到{{ current_user.temp_expires_at.strftime('%Y-%m-%d') }})</span>
@@ -101,6 +108,13 @@
                                 form.submit();
                             }
                             </script>
+                            {% endif %}
+                        {% endif %}
+                        {% if google_enabled %}
+                            {% if current_user.google_id %}
+                            <a href="{{ url_for('auth_google_unbind') }}" class="btn btn-danger mb-2"><i class="fab fa-google"></i> 解绑Google</a>
+                            {% else %}
+                            <a href="{{ url_for('auth_google_bind') }}" class="btn btn-outline-danger mb-2"><i class="fab fa-google"></i> 绑定Google</a>
                             {% endif %}
                         {% endif %}
                         {% if not current_user.is_verified %}

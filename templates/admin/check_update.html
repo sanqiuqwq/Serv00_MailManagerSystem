@@ -1,0 +1,45 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">检查更新</h5>
+    </div>
+    <div class="card-body">
+        <div class="mb-4">
+            <p><strong>当前版本：</strong>{{ system_version }}</p>
+        </div>
+        
+        {% if error_msg %}
+        <div class="alert alert-danger">
+            {{ error_msg }}
+        </div>
+        {% endif %}
+        
+        {% if update_info %}
+        <div class="card bg-light mb-4">
+            <div class="card-body">
+                <h6 class="card-title">最新版本信息</h6>
+                <p><strong>最新版本：</strong>{{ update_info.version }}</p>
+                <p><strong>更新内容：</strong></p>
+                <p>{{ update_info.update_content }}</p>
+                
+                {% if update_info.version != system_version %}
+                <div class="alert alert-warning mt-3">
+                    <i class="fa fa-exclamation-triangle me-2"></i>有新版本可用！
+                </div>
+                {% else %}
+                <div class="alert alert-success mt-3">
+                    <i class="fa fa-check-circle me-2"></i>当前已是最新版本
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <a href="{{ url_for('admin_check_update') }}" class="btn btn-primary">
+            <i class="fa fa-refresh me-2"></i>重新检查
+        </a>
+    </div>
+</div>
+{% endblock %}

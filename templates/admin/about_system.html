@@ -1,0 +1,48 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">关于系统</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-4">
+                    <h6>系统信息</h6>
+                    <p><strong>系统名称：</strong>Serv00_邮箱注册/管理系统</p>
+                    <p><strong>当前版本：</strong>{{ system_version }}</p>
+                    <p><strong>开源仓库：</strong>
+                        <a href="https://github.com/sanqiuqwq/Serv00_MailManagerSystem" target="_blank">
+                            <i class="fab fa-github me-1"></i>GitHub
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-4">
+                    <h6>开发人员</h6>
+                    <div class="card bg-light p-3">
+                        <p><strong>名称：</strong>nnn</p>
+                        <p><strong>Telegram：</strong>
+                            <a href="https://t.me/qwqtop" target="_blank">
+                                <i class="fab fa-telegram me-1"></i>@qwqtop
+                            </a>
+                        </p>
+                        <p><strong>NodeLoc：</strong>
+                            <a href="https://www.nodeloc.com/u/sanqi3737" target="_blank">
+                                <i class="fa fa-globe me-1"></i>sanqi3737
+                            </a>
+                        </p>
+                        <p><strong>GitHub：</strong>
+                            <a href="https://github.com/sanqiuqwq" target="_blank">
+                                <i class="fab fa-github me-1"></i>sanqiuqwq
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

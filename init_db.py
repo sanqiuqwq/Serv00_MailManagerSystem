@@ -35,6 +35,18 @@ def init_database():
                         print("✓ 已添加 telegram_id 列")
                     except Exception as e:
                         print(f"  telegram_id 列添加跳过: {e}")
+                
+                # 检查并添加 google_id 列（如果不存在）
+                try:
+                    conn.execute(text("SELECT google_id FROM user LIMIT 1"))
+                    print("✓ google_id 列已存在")
+                except:
+                    try:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN google_id VARCHAR(100) UNIQUE"))
+                        conn.execute(text("COMMIT"))
+                        print("✓ 已添加 google_id 列")
+                    except Exception as e:
+                        print(f"  google_id 列添加跳过: {e}")
         
         except Exception as e:
             print(f"  数据库结构检查跳过: {e}")

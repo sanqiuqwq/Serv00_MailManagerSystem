@@ -13,6 +13,9 @@ import string
 
 load_dotenv()
 
+# 系统版本号
+SYSTEM_VERSION = '1.3.0'
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', secrets.token_hex(24))
 
@@ -63,6 +66,12 @@ NODELOC_ENABLED = os.getenv('NODELOC_ENABLED', 'false').lower() == 'true'
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_BOT_USERNAME = os.getenv('TELEGRAM_BOT_USERNAME')
 TELEGRAM_ENABLED = os.getenv('TELEGRAM_ENABLED', 'false').lower() == 'true'
+
+# Google OAuth 2.0 配置
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI')
+GOOGLE_ENABLED = os.getenv('GOOGLE_ENABLED', 'false').lower() == 'true'
 
 if RECAPTCHA_USE_CN:
     RECAPTCHA_API_URL = 'https://www.recaptcha.net/recaptcha/api.js'
@@ -123,6 +132,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     nodeloc_id = db.Column(db.BigInteger, unique=True)
     telegram_id = db.Column(db.BigInteger, unique=True)
+    google_id = db.Column(db.String(100), unique=True)
     is_verified = db.Column(db.Boolean, default=False)
     is_banned = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
@@ -785,6 +795,152 @@ def auth_telegram_unbind():
     return redirect(url_for('dashboard'))
 
 
+@app.route('/auth/google')
+def auth_google():
+    if not GOOGLE_ENABLED or not GOOGLE_CLIENT_ID:
+        flash('Google登录未启用', 'danger')
+        return redirect(url_for('login'))
+    
+    import urllib.parse
+    import uuid
+    
+    state = str(uuid.uuid4())
+    session['google_state'] = state
+    session['google_mode'] = 'login'
+    
+    params = {
+        'client_id': GOOGLE_CLIENT_ID,
+        'redirect_uri': GOOGLE_REDIRECT_URI,
+        'response_type': 'code',
+        'scope': 'openid email profile',
+        'state': state,
+        'access_type': 'online'
+    }
+    
+    auth_url = f'https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}'
+    return redirect(auth_url)
+
+
+@app.route('/auth/google/bind')
+@login_required
+def auth_google_bind():
+    if not GOOGLE_ENABLED or not GOOGLE_CLIENT_ID:
+        flash('Google登录未启用', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    import urllib.parse
+    import uuid
+    
+    state = str(uuid.uuid4())
+    session['google_state'] = state
+    session['google_mode'] = 'bind'
+    
+    params = {
+        'client_id': GOOGLE_CLIENT_ID,
+        'redirect_uri': GOOGLE_REDIRECT_URI,
+        'response_type': 'code',
+        'scope': 'openid email profile',
+        'state': state,
+        'access_type': 'online'
+    }
+    
+    auth_url = f'https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}'
+    return redirect(auth_url)
+
+
+@app.route('/auth/google/callback')
+def auth_google_callback():
+    if not GOOGLE_ENABLED or not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        flash('Google登录未启用', 'danger')
+        return redirect(url_for('login'))
+    
+    code = request.args.get('code')
+    state = request.args.get('state')
+    
+    if state != session.get('google_state'):
+        flash('验证失败', 'danger')
+        return redirect(url_for('login'))
+    
+    google_mode = session.get('google_mode', 'login')
+    
+    import urllib.parse
+    
+    token_data = {
+        'client_id': GOOGLE_CLIENT_ID,
+        'client_secret': GOOGLE_CLIENT_SECRET,
+        'code': code,
+        'grant_type': 'authorization_code',
+        'redirect_uri': GOOGLE_REDIRECT_URI
+    }
+    
+    try:
+        token_response = requests.post(
+            'https://oauth2.googleapis.com/token',
+            data=token_data,
+            timeout=10
+        )
+        token_json = token_response.json()
+        
+        if 'access_token' not in token_json:
+            flash('Google操作失败', 'danger')
+            return redirect(url_for('login'))
+        
+        user_info_response = requests.get(
+            'https://www.googleapis.com/oauth2/v2/userinfo',
+            headers={'Authorization': f'Bearer {token_json["access_token"]}'},
+            timeout=10
+        )
+        user_info = user_info_response.json()
+        
+        google_id = user_info.get('id')
+        if not google_id:
+            flash('Google操作失败', 'danger')
+            return redirect(url_for('login'))
+        
+        if google_mode == 'bind':
+            if not current_user.is_authenticated:
+                flash('请先登录', 'danger')
+                return redirect(url_for('login'))
+            
+            existing_user = User.query.filter_by(google_id=google_id).first()
+            if existing_user and existing_user.id != current_user.id:
+                flash('该Google账户已绑定到其他用户', 'danger')
+                return redirect(url_for('dashboard'))
+            
+            current_user.google_id = google_id
+            db.session.commit()
+            flash('Google账户绑定成功！现在可以使用Google登录了', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            user = User.query.filter_by(google_id=google_id).first()
+            
+            if not user:
+                flash('该Google账户未绑定，请先使用密码登录后在用户中心绑定', 'danger')
+                return redirect(url_for('login'))
+            
+            if user.is_banned:
+                flash('您的账户已被禁用', 'danger')
+                return redirect(url_for('login'))
+            
+            login_user(user)
+            flash('登录成功', 'success')
+            return redirect(url_for('dashboard'))
+        
+    except Exception as e:
+        flash(f'Google操作失败: {str(e)}', 'danger')
+        return redirect(url_for('login'))
+
+
+@app.route('/auth/google/unbind')
+@login_required
+def auth_google_unbind():
+    if current_user.google_id:
+        current_user.google_id = None
+        db.session.commit()
+        flash('Google账户解绑成功', 'success')
+    return redirect(url_for('dashboard'))
+
+
 @app.route('/')
 def index():
     announcements = Announcement.query.filter_by(is_active=True).order_by(Announcement.created_at.desc()).all()
@@ -937,7 +1093,13 @@ def login():
         else:
             flash('用户名或密码错误', 'danger')
 
-    return render_template('login.html')
+    return render_template('login.html',
+                           nodeloc_enabled=NODELOC_ENABLED,
+                           telegram_enabled=TELEGRAM_ENABLED,
+                           telegram_bot_username=TELEGRAM_BOT_USERNAME,
+                           google_enabled=GOOGLE_ENABLED,
+                           google_client_id=GOOGLE_CLIENT_ID,
+                           google_redirect_uri=GOOGLE_REDIRECT_URI)
 
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
@@ -1145,7 +1307,14 @@ def open_ticket(ticket_id):
 def dashboard():
     domains = Domain.query.filter_by(is_active=True).all()
     emails = RegisteredEmail.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', domains=domains, emails=emails, datetime=datetime)
+    return render_template('dashboard.html', 
+                           domains=domains, 
+                           emails=emails, 
+                           datetime=datetime,
+                           nodeloc_enabled=NODELOC_ENABLED,
+                           telegram_enabled=TELEGRAM_ENABLED,
+                           telegram_bot_username=TELEGRAM_BOT_USERNAME,
+                           google_enabled=GOOGLE_ENABLED)
 
 
 @app.route('/create-email', methods=['POST'])
@@ -2088,6 +2257,39 @@ def admin_delete_email_suffix(item_id):
     
     flash(f'邮箱后缀 "{item.suffix}" 已从允许列表中删除', 'success')
     return redirect(url_for('admin_email_suffixes'))
+
+
+@app.route('/admin/about-system')
+@login_required
+def admin_about_system():
+    if not current_user.is_owner():
+        flash('无权访问此页面', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    
+    return render_template('admin/about_system.html', system_version=SYSTEM_VERSION)
+
+
+@app.route('/admin/check-update')
+@login_required
+def admin_check_update():
+    if not current_user.is_owner():
+        flash('无权访问此页面', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    
+    update_info = None
+    error_msg = None
+    
+    try:
+        update_url = 'https://sanqiuqwq.github.io/Serv00_MailManagerSystem/version_update.json'
+        response = requests.get(update_url, timeout=10)
+        update_info = response.json()
+    except Exception as e:
+        error_msg = f'检查更新失败: {str(e)}'
+    
+    return render_template('admin/check_update.html', 
+                           system_version=SYSTEM_VERSION,
+                           update_info=update_info,
+                           error_msg=error_msg)
 
 
 @app.route('/redeem-code', methods=['GET', 'POST'])
