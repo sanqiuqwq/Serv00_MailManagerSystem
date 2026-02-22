@@ -64,6 +64,8 @@ python update_db.py
 
 ### 用户端
 - 用户注册/登录（用户名+密码）
+- NodeLoc OAuth 登录（需先绑定）
+- Telegram 登录（需先绑定）
 - 邮箱验证
 - reCAPTCHA v2 人机验证
 - 创建邮箱（前缀+域名选择）
@@ -75,6 +77,8 @@ python update_db.py
 - 修改密码
 - 忘记密码
 - TG交流群入口
+- 绑定/解绑 NodeLoc 账户
+- 绑定/解绑 Telegram 账户
 
 ### 管理后台
 - 用户管理（查看/搜索/修改用户组/单独设置用户邮箱配额）
@@ -85,10 +89,11 @@ python update_db.py
 - 公告管理（发布/显示/隐藏/删除）
 - 前缀黑名单管理（禁止特定邮箱前缀注册）
 - 邮箱后缀限制（只允许特定后缀注册账户）
-- 站点设置（编辑站点名称/描述/域名/购买卡密链接/TG群链接/默认邮箱配额/前缀长度限制）
+- 站点设置（编辑站点名称/描述/域名/购买卡密链接/TG群链接/默认邮箱配额/前缀长度限制/邮件服务器配置）
+- 邮件服务器配置（SMTP/IMAP/POP3/Webmail）
 - 关于页面编辑
 - 用户协议编辑
-
+- 
 ### 权限控制
 - **Owner（所有者）**：可访问所有后台功能
 - **Pro用户**：享受更少的邮箱前缀限制和更多的邮箱配额
@@ -122,6 +127,9 @@ python update_db.py
 | NODELOC_CLIENT_ID | NodeLoc OAuth Client ID | your-client-id |
 | NODELOC_CLIENT_SECRET | NodeLoc OAuth Client Secret | your-client-secret |
 | NODELOC_REDIRECT_URI | NodeLoc OAuth回调地址 | http://localhost:5000/auth/nodeloc/callback |
+| TELEGRAM_ENABLED | 是否启用Telegram登录 | false |
+| TELEGRAM_BOT_TOKEN | Telegram Bot Token | your-bot-token |
+| TELEGRAM_BOT_USERNAME | Telegram Bot用户名 | your-bot-username |
 | SMTP_SERVER | SMTP服务器 | smtp.example.com |
 | SMTP_PORT | SMTP端口 | 587 |
 | SMTP_USERNAME | SMTP用户名 | noreply@example.com |
@@ -129,7 +137,6 @@ python update_db.py
 | ADMIN_USERNAME | Owner用户名 | admin |
 | ADMIN_EMAIL | Owner邮箱 | admin@example.com |
 | ADMIN_PASSWORD | Owner密码 | admin123 |
-
 
 ## 项目结构
 
@@ -193,6 +200,26 @@ NODELOC_CLIENT_SECRET=你的Client Secret
 NODELOC_REDIRECT_URI=https://你的域名/auth/nodeloc/callback
 ```
 
+## Telegram 登录使用说明
+
+### 配置步骤
+
+1. 创建 Telegram Bot：
+   - 访问 [@BotFather](https://t.me/BotFather)
+   - 发送 `/newbot` 命令创建机器人
+   - 记录 Bot Token 和 Bot 用户名
+
+2. 设置网站域名：
+   - 向 @BotFather 发送 `/setdomain` 命令
+   - 输入你的网站域名（例如：`yourdomain.com`）
+   - 注意：域名不需要加协议头（http/https）
+
+3. 在 `.env` 中配置：
+```env
+TELEGRAM_ENABLED=true
+TELEGRAM_BOT_TOKEN=你的Bot Token
+TELEGRAM_BOT_USERNAME=你的Bot用户名（例如：your_bot）
+```
 
 ## 许可证
 
