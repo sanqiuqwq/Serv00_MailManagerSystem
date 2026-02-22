@@ -1,11 +1,43 @@
 from app import app, db
 from datetime import datetime
+from sqlalchemy import text
 
 def init_database():
     with app.app_context():
         print("正在创建所有数据表...")
         db.create_all()
         print("✓ 数据表创建完成")
+        
+        print("\n正在检查并更新数据库结构...")
+        
+        try:
+            with db.engine.connect() as conn:
+                # 检查并添加 nodeloc_id 列（如果不存在）
+                try:
+                    conn.execute(text("SELECT nodeloc_id FROM user LIMIT 1"))
+                    print("✓ nodeloc_id 列已存在")
+                except:
+                    try:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN nodeloc_id BIGINT UNIQUE"))
+                        conn.execute(text("COMMIT"))
+                        print("✓ 已添加 nodeloc_id 列")
+                    except Exception as e:
+                        print(f"  nodeloc_id 列添加跳过: {e}")
+                
+                # 检查并添加 telegram_id 列（如果不存在）
+                try:
+                    conn.execute(text("SELECT telegram_id FROM user LIMIT 1"))
+                    print("✓ telegram_id 列已存在")
+                except:
+                    try:
+                        conn.execute(text("ALTER TABLE user ADD COLUMN telegram_id BIGINT UNIQUE"))
+                        conn.execute(text("COMMIT"))
+                        print("✓ 已添加 telegram_id 列")
+                    except Exception as e:
+                        print(f"  telegram_id 列添加跳过: {e}")
+        
+        except Exception as e:
+            print(f"  数据库结构检查跳过: {e}")
         
         print("\n正在初始化默认数据...")
         
@@ -17,6 +49,8 @@ def init_database():
             db.session.add(settings)
             db.session.commit()
             print("✓ 站点设置初始化完成")
+        else:
+            print("✓ 站点设置已存在")
         
         # 初始化用户协议
         if not UserAgreement.query.first():
@@ -24,6 +58,8 @@ def init_database():
             db.session.add(agreement)
             db.session.commit()
             print("✓ 用户协议初始化完成")
+        else:
+            print("✓ 用户协议已存在")
         
         # 初始化关于页面
         if not AboutPage.query.first():
@@ -31,6 +67,8 @@ def init_database():
             db.session.add(about)
             db.session.commit()
             print("✓ 关于页面初始化完成")
+        else:
+            print("✓ 关于页面已存在")
         
         # 初始化邮箱前缀黑名单
         default_prefixes = [
@@ -61,12 +99,14 @@ def init_database():
         ]
         
         existing_prefixes = [p.prefix for p in PrefixBlacklist.query.all()]
+        added_count = 0
         for prefix in default_prefixes:
             if prefix not in existing_prefixes:
                 p = PrefixBlacklist(prefix=prefix)
                 db.session.add(p)
+                added_count += 1
         db.session.commit()
-        print(f"✓ 邮箱前缀黑名单初始化完成（共 {len(default_prefixes)} 个）")
+        print(f"✓ 邮箱前缀黑名单初始化完成（新增 {added_count} 个）")
         
         # 初始化允许的邮箱后缀
         default_suffixes = [
@@ -77,12 +117,14 @@ def init_database():
         ]
         
         existing_suffixes = [s.suffix for s in AllowedEmailSuffix.query.all()]
+        added_suffix_count = 0
         for suffix in default_suffixes:
             if suffix not in existing_suffixes:
                 s = AllowedEmailSuffix(suffix=suffix)
                 db.session.add(s)
+                added_suffix_count += 1
         db.session.commit()
-        print(f"✓ 允许的邮箱后缀初始化完成（共 {len(default_suffixes)} 个）")
+        print(f"✓ 允许的邮箱后缀初始化完成（新增 {added_suffix_count} 个）")
         
         # 初始化默认Owner账户
         import os
@@ -107,6 +149,8 @@ def init_database():
             print(f"  用户名: {admin_username}")
             print(f"  密码: {admin_password}")
             print(f"  邮箱: {admin_email}")
+        else:
+            print(f"✓ Owner账户已存在")
         
         print("\n========================================")
         print("数据库初始化完成！")

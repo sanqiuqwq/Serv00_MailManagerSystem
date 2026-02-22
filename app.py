@@ -59,6 +59,11 @@ NODELOC_CLIENT_SECRET = os.getenv('NODELOC_CLIENT_SECRET')
 NODELOC_REDIRECT_URI = os.getenv('NODELOC_REDIRECT_URI')
 NODELOC_ENABLED = os.getenv('NODELOC_ENABLED', 'false').lower() == 'true'
 
+# Telegram Login Widget 配置
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_BOT_USERNAME = os.getenv('TELEGRAM_BOT_USERNAME')
+TELEGRAM_ENABLED = os.getenv('TELEGRAM_ENABLED', 'false').lower() == 'true'
+
 if RECAPTCHA_USE_CN:
     RECAPTCHA_API_URL = 'https://www.recaptcha.net/recaptcha/api.js'
     RECAPTCHA_VERIFY_URL = 'https://www.recaptcha.net/recaptcha/api/siteverify'
@@ -116,7 +121,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    nodeloc_id = db.Column(db.Integer, unique=True)
+    nodeloc_id = db.Column(db.BigInteger, unique=True)
+    telegram_id = db.Column(db.BigInteger, unique=True)
     is_verified = db.Column(db.Boolean, default=False)
     is_banned = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
@@ -532,6 +538,11 @@ def inject_nodeloc_config():
     return dict(nodeloc_enabled=NODELOC_ENABLED)
 
 
+@app.context_processor
+def inject_telegram_config():
+    return dict(telegram_enabled=TELEGRAM_ENABLED, telegram_bot_username=TELEGRAM_BOT_USERNAME)
+
+
 @app.route('/auth/nodeloc')
 def auth_nodeloc():
     if not NODELOC_ENABLED or not NODELOC_CLIENT_ID or not NODELOC_REDIRECT_URI:
@@ -683,6 +694,95 @@ def auth_nodeloc_callback():
     except Exception as e:
         flash('操作失败，请重试', 'danger')
         return redirect(url_for('login'))
+
+
+def verify_telegram_auth(data):
+    if not TELEGRAM_BOT_TOKEN:
+        return False
+    
+    import hashlib
+    import hmac
+    
+    auth_data = dict(data)
+    hash_value = auth_data.pop('hash', None)
+    
+    if not hash_value:
+        return False
+    
+    auth_date = auth_data.get('auth_date')
+    if auth_date:
+        import time
+        if int(time.time()) - int(auth_date) > 86400:
+            return False
+    
+    data_check_string = '\n'.join([f'{k}={v}' for k, v in sorted(auth_data.items())])
+    
+    secret_key = hashlib.sha256(TELEGRAM_BOT_TOKEN.encode('utf-8')).digest()
+    
+    hmac_obj = hmac.new(secret_key, data_check_string.encode('utf-8'), hashlib.sha256)
+    computed_hash = hmac_obj.hexdigest()
+    
+    return hmac.compare_digest(computed_hash, hash_value)
+
+
+@app.route('/auth/telegram', methods=['POST'])
+def auth_telegram():
+    if not TELEGRAM_ENABLED or not TELEGRAM_BOT_TOKEN:
+        flash('Telegram登录未启用', 'danger')
+        return redirect(url_for('login'))
+    
+    if not verify_telegram_auth(request.form):
+        flash('Telegram验证失败', 'danger')
+        return redirect(url_for('login'))
+    
+    telegram_id = int(request.form.get('id'))
+    user = User.query.filter_by(telegram_id=telegram_id).first()
+    
+    if not user:
+        flash('该Telegram账户未绑定，请先使用密码登录后在用户中心绑定', 'danger')
+        return redirect(url_for('login'))
+    
+    if user.is_banned:
+        flash('您的账户已被禁用', 'danger')
+        return redirect(url_for('login'))
+    
+    login_user(user)
+    flash('登录成功', 'success')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/auth/telegram/bind', methods=['POST'])
+@login_required
+def auth_telegram_bind():
+    if not TELEGRAM_ENABLED or not TELEGRAM_BOT_TOKEN:
+        flash('Telegram登录未启用', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    if not verify_telegram_auth(request.form):
+        flash('Telegram验证失败', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    telegram_id = int(request.form.get('id'))
+    
+    existing_user = User.query.filter_by(telegram_id=telegram_id).first()
+    if existing_user and existing_user.id != current_user.id:
+        flash('该Telegram账户已绑定到其他用户', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    current_user.telegram_id = telegram_id
+    db.session.commit()
+    flash('Telegram账户绑定成功！现在可以使用Telegram登录了', 'success')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/auth/telegram/unbind')
+@login_required
+def auth_telegram_unbind():
+    if current_user.telegram_id:
+        current_user.telegram_id = None
+        db.session.commit()
+        flash('Telegram账户解绑成功', 'success')
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/')

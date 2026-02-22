@@ -43,6 +43,13 @@
                             <span class="badge bg-secondary">未绑定</span>
                             {% endif %}
                         </p>
+                        <p><strong>Telegram绑定:</strong> 
+                            {% if current_user.telegram_id %}
+                            <span class="badge bg-success">已绑定</span>
+                            {% else %}
+                            <span class="badge bg-secondary">未绑定</span>
+                            {% endif %}
+                        </p>
                         <p><strong>邮箱配额:</strong> {{ current_user.get_email_count() }}/{{ current_user.get_max_emails() }}
                             {% if current_user.temp_expires_at and current_user.temp_expires_at > datetime.utcnow() %}
                             <span class="badge bg-info ms-2">临时+{{ current_user.temp_extra_emails }} (到{{ current_user.temp_expires_at.strftime('%Y-%m-%d') }})</span>
@@ -65,6 +72,35 @@
                             <a href="{{ url_for('auth_nodeloc_unbind') }}" class="btn btn-danger mb-2">解绑NodeLoc</a>
                             {% else %}
                             <a href="{{ url_for('auth_nodeloc_bind') }}" class="btn btn-outline-dark mb-2"><i class="fa fa-globe"></i> 绑定NodeLoc</a>
+                            {% endif %}
+                        {% endif %}
+                        {% if telegram_enabled and telegram_bot_username %}
+                            {% if current_user.telegram_id %}
+                            <a href="{{ url_for('auth_telegram_unbind') }}" class="btn btn-danger mb-2"><i class="fa fa-telegram"></i> 解绑Telegram</a>
+                            {% else %}
+                            <form method="POST" action="{{ url_for('auth_telegram_bind') }}" id="telegram-bind-form" class="d-inline-block mb-2">
+                                <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                                        data-telegram-login="{{ telegram_bot_username }}" 
+                                        data-size="medium" 
+                                        data-request-access="write"
+                                        data-onauth="onTelegramBind(user)">
+                                </script>
+                            </form>
+                            <script>
+                            function onTelegramBind(user) {
+                                var form = document.getElementById('telegram-bind-form');
+                                for (var key in user) {
+                                    if (user.hasOwnProperty(key)) {
+                                        var input = document.createElement('input');
+                                        input.type = 'hidden';
+                                        input.name = key;
+                                        input.value = user[key];
+                                        form.appendChild(input);
+                                    }
+                                }
+                                form.submit();
+                            }
+                            </script>
                             {% endif %}
                         {% endif %}
                         {% if not current_user.is_verified %}

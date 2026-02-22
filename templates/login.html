@@ -26,18 +26,49 @@
                     {% endif %}
                     <button type="submit" class="btn btn-primary w-100">登录</button>
                 </form>
-                {% if nodeloc_enabled %}
+                
+                {% if nodeloc_enabled or telegram_enabled %}
                 <div class="mt-3 text-center">
                     <div class="d-flex align-items-center my-3">
                         <hr class="flex-grow-1">
                         <span class="mx-2 text-muted">或</span>
                         <hr class="flex-grow-1">
                     </div>
-                    <a href="{{ url_for('auth_nodeloc') }}" class="btn btn-outline-dark w-100">
+                    
+                    {% if nodeloc_enabled %}
+                    <a href="{{ url_for('auth_nodeloc') }}" class="btn btn-outline-dark w-100 mb-2">
                         <i class="fa fa-globe me-2"></i>使用 NodeLoc 登录
                     </a>
+                    {% endif %}
+                    
+                    {% if telegram_enabled and telegram_bot_username %}
+                    <form method="POST" action="{{ url_for('auth_telegram') }}" id="telegram-login-form">
+                        <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                                data-telegram-login="{{ telegram_bot_username }}" 
+                                data-size="large" 
+                                data-request-access="write"
+                                data-onauth="onTelegramAuth(user)">
+                        </script>
+                    </form>
+                    <script>
+                    function onTelegramAuth(user) {
+                        var form = document.getElementById('telegram-login-form');
+                        for (var key in user) {
+                            if (user.hasOwnProperty(key)) {
+                                var input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = key;
+                                input.value = user[key];
+                                form.appendChild(input);
+                            }
+                        }
+                        form.submit();
+                    }
+                    </script>
+                    {% endif %}
                 </div>
                 {% endif %}
+                
                 <div class="mt-3 text-center">
                     <p>
                         <a href="{{ url_for('forgot_password') }}">忘记密码？</a>
