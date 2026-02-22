@@ -13,7 +13,7 @@ Demo：https://reg.nekoqwq.com/
 pip install -r requirements.txt
 ```
 国内镜像加速：
-https://pan.nekoqwq.com/s/Bnhx
+暂时挂了
 
 2. 配置环境变量：
 ```bash
