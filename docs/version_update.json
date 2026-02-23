@@ -1,4 +1,4 @@
 {
-  "version": "1.3.1",
-  "update_content": "本次更新了Google登录，添加了系统更新页面"
+  "version": "1.4.0",
+  "update_content": "本次更新使用Bing每日图片作为背景，添加了Liquid Glass效果（可能对性能有轻微影响）"
 }
