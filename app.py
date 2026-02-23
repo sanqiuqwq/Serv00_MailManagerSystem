@@ -14,7 +14,7 @@ import string
 load_dotenv()
 
 # 系统版本号
-SYSTEM_VERSION = '1.3.0'
+SYSTEM_VERSION = '1.4.0'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', secrets.token_hex(24))

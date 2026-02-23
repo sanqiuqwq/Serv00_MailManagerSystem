@@ -19,6 +19,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- AOS JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <!-- Liquid Glass Effect -->
+    <script src="{{ url_for('static', filename='js/liquid-glass-effects.js') }}"></script>
     {% if recaptcha_enabled and recaptcha_site_key %}
     <script src="{{ recaptcha_api_url }}" async defer></script>
     {% endif %}
@@ -35,52 +37,66 @@
     <style>
         /* 全局样式 */
         :root {
-            --primary-color: rgba(52, 58, 64, 0.85);
+            --primary-color: rgba(255, 255, 255, 0.9);
             --secondary-color: rgba(248, 249, 250, 0.9);
             --accent-color: rgba(0, 123, 255, 0.8);
-            --text-color: #333;
+            --text-color: #fff;
             --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
             --border-radius: 12px;
             --transition: all 0.3s ease;
         }
         
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: url('https://bing.img.run/rand_uhd.php') center center fixed no-repeat;
+            background-size: cover;
             min-height: 100vh;
             font-family: 'Poppins', sans-serif;
+            color: #fff;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
         }
         
         /* 导航栏样式 */
         .navbar {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: var(--shadow);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             transition: var(--transition);
+            color: #fff;
         }
         
         .navbar:hover {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.12);
         }
         
         .navbar-brand {
             font-weight: 700;
             font-size: 1.5rem;
             transition: var(--transition);
-            color: var(--primary-color) !important;
+            color: #fff !important;
         }
         
         .navbar-brand:hover {
             transform: scale(1.05);
-            color: var(--accent-color) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
         }
         
         .nav-link {
             position: relative;
             transition: var(--transition);
             font-weight: 500;
-            color: var(--primary-color) !important;
+            color: #fff !important;
         }
         
         .nav-link:hover {
@@ -117,13 +133,30 @@
         
         /* 卡片样式 */
         .card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: var(--shadow);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             border-radius: var(--border-radius);
             transition: var(--transition);
+            color: #fff;
+        }
+        
+        .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+            color: #fff;
+        }
+        
+        .card .card-title {
+            color: #fff;
+        }
+        
+        .card .card-text {
+            color: #fff;
+        }
+        
+        .card label {
+            color: #fff;
         }
         
         .card:hover {
@@ -168,13 +201,18 @@
         
         /* Jumbotron样式 */
         .jumbotron {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: var(--shadow);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             border-radius: var(--border-radius);
             transition: var(--transition);
+            color: #fff;
+        }
+        
+        .jumbotron h1, .jumbotron h2, .jumbotron h3, .jumbotron h4, .jumbotron h5, .jumbotron h6 {
+            color: #fff;
         }
         
         .jumbotron:hover {
@@ -190,7 +228,7 @@
             border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             transition: var(--transition);
-            color: var(--primary-color);
+            color: #333;
         }
         
         .form-control:focus {
@@ -200,29 +238,114 @@
         }
         
         .form-label {
-            color: var(--primary-color);
+            color: #fff;
             font-weight: 500;
         }
         
         /* 页脚样式 */
         footer {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.25);
             margin-top: 3rem;
             padding: 2rem 0;
+            color: #fff;
+        }
+        
+        footer .text-muted {
+            color: #fff !important;
         }
         
         /* 通知样式 */
         .alert {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: var(--shadow);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             border-radius: 8px;
             transition: var(--transition);
+            color: #fff;
+        }
+        
+        /* 列表组样式 */
+        .list-group-item {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+        
+        .list-group-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+        
+        .list-group-item.active {
+            background: rgba(0, 123, 255, 0.5);
+            border-color: rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+        
+        /* 表格样式 */
+        table {
+            color: #fff;
+        }
+        
+        table th {
+            color: #fff;
+        }
+        
+        table td {
+            color: #fff;
+        }
+        
+        /* 覆盖所有 Bootstrap 背景类 */
+        .bg-light {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+        
+        .bg-primary {
+            background: rgba(0, 123, 255, 0.3) !important;
+        }
+        
+        .bg-secondary {
+            background: rgba(108, 117, 125, 0.3) !important;
+        }
+        
+        .bg-success {
+            background: rgba(40, 167, 69, 0.3) !important;
+        }
+        
+        .bg-danger {
+            background: rgba(220, 53, 69, 0.3) !important;
+        }
+        
+        .bg-warning {
+            background: rgba(255, 193, 7, 0.3) !important;
+        }
+        
+        .bg-info {
+            background: rgba(23, 162, 184, 0.3) !important;
+        }
+        
+        .bg-dark {
+            background: rgba(52, 58, 64, 0.3) !important;
+        }
+        
+        /* 文本颜色修复 */
+        .text-white {
+            color: #fff !important;
+        }
+        
+        .text-muted {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+        
+        .form-text {
+            color: rgba(255, 255, 255, 0.7) !important;
         }
         
         /* 模态框样式 */
@@ -277,11 +400,23 @@
             flex-direction: column;
             width: 100%;
             pointer-events: auto;
-            background-color: #fff;
+            background: rgba(255, 255, 255, 0.18);
             background-clip: padding-box;
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 0.5rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             outline: 0;
+            color: #fff;
+        }
+        
+        .modal-content h1, .modal-content h2, .modal-content h3, .modal-content h4, .modal-content h5, .modal-content h6 {
+            color: #fff;
+        }
+        
+        .modal-content label {
+            color: #fff;
         }
         
         .modal-header {
@@ -289,7 +424,7 @@
             align-items: flex-start;
             justify-content: space-between;
             padding: 1rem 1rem;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             border-top-left-radius: calc(0.5rem - 1px);
             border-top-right-radius: calc(0.5rem - 1px);
         }
@@ -305,17 +440,13 @@
             align-items: center;
             justify-content: flex-end;
             padding: 0.75rem;
-            border-top: 1px solid #dee2e6;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
             border-bottom-right-radius: calc(0.5rem - 1px);
             border-bottom-left-radius: calc(0.5rem - 1px);
         }
         
         /* 响应式设计 */
         @media (max-width: 768px) {
-            .navbar {
-                background: rgba(255, 255, 255, 0.95);
-            }
-            
             .card,
             .jumbotron {
                 margin-bottom: 1.5rem;
@@ -414,7 +545,7 @@
 
     <footer class="bg-light mt-5 py-4">
         <div class="container text-center">
-            <p class="text-muted mb-0">Serv00_邮箱注册/管理系统 ver 1.3.0</p>
+            <p class="text-muted mb-0">Serv00_邮箱注册/管理系统 ver 1.4.0</p>
             <p class="text-muted small mb-0 mt-2">
                 源代码：<a href="https://github.com/sanqiuqwq/Serv00_MailManagerSystem" target="_blank" class="text-decoration-none">GitHub</a>
             </p>
