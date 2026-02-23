@@ -130,6 +130,10 @@ python update_db.py
 | TELEGRAM_ENABLED | 是否启用Telegram登录 | false |
 | TELEGRAM_BOT_TOKEN | Telegram Bot Token | your-bot-token |
 | TELEGRAM_BOT_USERNAME | Telegram Bot用户名 | your-bot-username |
+| GOOGLE_ENABLED | 是否启用Google OAuth 2.0登录 | false |
+| GOOGLE_CLIENT_ID | Google OAuth Client ID | your-client-id |
+| GOOGLE_CLIENT_SECRET | Google OAuth Client Secret | your-client-secret |
+| GOOGLE_REDIRECT_URI | Google OAuth回调地址 | http://localhost:5000/auth/google/callback |
 | SMTP_SERVER | SMTP服务器 | smtp.example.com |
 | SMTP_PORT | SMTP端口 | 587 |
 | SMTP_USERNAME | SMTP用户名 | noreply@example.com |
@@ -252,6 +256,10 @@ GOOGLE_CLIENT_SECRET=你的Client Secret
 GOOGLE_REDIRECT_URI=https://你的域名/auth/google/callback
 ```
 
+## 致谢
+
+本项目使用了以下开源项目：
+- [Liquid Glass](https://github.com/shuding/liquid-glass) - 提供液态玻璃效果
 
 ## 许可证
 
