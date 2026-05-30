@@ -14,7 +14,7 @@ import string
 load_dotenv()
 
 # 系统版本号
-SYSTEM_VERSION = '1.4.0'
+SYSTEM_VERSION = '1.5.0'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', secrets.token_hex(24))
@@ -72,6 +72,12 @@ GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
 GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI')
 GOOGLE_ENABLED = os.getenv('GOOGLE_ENABLED', 'false').lower() == 'true'
+
+# LinuxDo OAuth 2.0 配置
+LINUXDO_CLIENT_ID = os.getenv('LINUXDO_CLIENT_ID')
+LINUXDO_CLIENT_SECRET = os.getenv('LINUXDO_CLIENT_SECRET')
+LINUXDO_REDIRECT_URI = os.getenv('LINUXDO_REDIRECT_URI')
+LINUXDO_ENABLED = os.getenv('LINUXDO_ENABLED', 'false').lower() == 'true'
 
 if RECAPTCHA_USE_CN:
     RECAPTCHA_API_URL = 'https://www.recaptcha.net/recaptcha/api.js'
@@ -133,6 +139,7 @@ class User(UserMixin, db.Model):
     nodeloc_id = db.Column(db.BigInteger, unique=True)
     telegram_id = db.Column(db.BigInteger, unique=True)
     google_id = db.Column(db.String(100), unique=True)
+    linuxdo_id = db.Column(db.BigInteger, unique=True)
     is_verified = db.Column(db.Boolean, default=False)
     is_banned = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
@@ -553,6 +560,16 @@ def inject_telegram_config():
     return dict(telegram_enabled=TELEGRAM_ENABLED, telegram_bot_username=TELEGRAM_BOT_USERNAME)
 
 
+@app.context_processor
+def inject_google_config():
+    return dict(google_enabled=GOOGLE_ENABLED)
+
+
+@app.context_processor
+def inject_linuxdo_config():
+    return dict(linuxdo_enabled=LINUXDO_ENABLED)
+
+
 @app.route('/auth/nodeloc')
 def auth_nodeloc():
     if not NODELOC_ENABLED or not NODELOC_CLIENT_ID or not NODELOC_REDIRECT_URI:
@@ -941,6 +958,159 @@ def auth_google_unbind():
     return redirect(url_for('dashboard'))
 
 
+@app.route('/auth/linuxdo')
+def auth_linuxdo():
+    if not LINUXDO_ENABLED or not LINUXDO_CLIENT_ID or not LINUXDO_REDIRECT_URI:
+        flash('LinuxDo登录未启用', 'danger')
+        return redirect(url_for('login'))
+    
+    state = secrets.token_urlsafe(32)
+    session['linuxdo_state'] = state
+    
+    auth_url = f"https://linux.do/oauth-provider/authorize?client_id={LINUXDO_CLIENT_ID}&redirect_uri={LINUXDO_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
+    return redirect(auth_url)
+
+
+@app.route('/auth/linuxdo/bind')
+@login_required
+def auth_linuxdo_bind():
+    if not LINUXDO_ENABLED or not LINUXDO_CLIENT_ID or not LINUXDO_REDIRECT_URI:
+        flash('LinuxDo登录未启用', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    state = secrets.token_urlsafe(32)
+    session['linuxdo_bind_state'] = state
+    session['linuxdo_bind_user_id'] = current_user.id
+    
+    auth_url = f"https://linux.do/oauth-provider/authorize?client_id={LINUXDO_CLIENT_ID}&redirect_uri={LINUXDO_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
+    return redirect(auth_url)
+
+
+@app.route('/auth/linuxdo/unbind')
+@login_required
+def auth_linuxdo_unbind():
+    if current_user.linuxdo_id:
+        current_user.linuxdo_id = None
+        db.session.commit()
+        flash('LinuxDo账户解绑成功', 'success')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/auth/linuxdo/callback')
+def auth_linuxdo_callback():
+    if not LINUXDO_ENABLED:
+        flash('LinuxDo登录未启用', 'danger')
+        return redirect(url_for('login'))
+    
+    code = request.args.get('code')
+    state = request.args.get('state')
+    error = request.args.get('error')
+    
+    if error:
+        flash('LinuxDo授权失败', 'danger')
+        return redirect(url_for('login'))
+    
+    if not code or not state:
+        flash('无效的请求', 'danger')
+        return redirect(url_for('login'))
+    
+    is_bind = False
+    bind_user_id = None
+    
+    if state == session.get('linuxdo_bind_state'):
+        is_bind = True
+        bind_user_id = session.get('linuxdo_bind_user_id')
+        session.pop('linuxdo_bind_state', None)
+        session.pop('linuxdo_bind_user_id', None)
+    elif state == session.get('linuxdo_state'):
+        session.pop('linuxdo_state', None)
+    else:
+        flash('无效的请求', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        token_data = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': LINUXDO_REDIRECT_URI,
+            'client_id': LINUXDO_CLIENT_ID,
+            'client_secret': LINUXDO_CLIENT_SECRET
+        }
+        
+        token_response = requests.post(
+            "https://linux.do/oauth-provider/token",
+            data=token_data,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            timeout=10
+        )
+        
+        if token_response.status_code != 200:
+            flash('获取Token失败', 'danger')
+            return redirect(url_for('login'))
+        
+        token_json = token_response.json()
+        access_token = token_json.get('access_token')
+        
+        if not access_token:
+            flash('无效的Token响应', 'danger')
+            return redirect(url_for('login'))
+        
+        userinfo_response = requests.get(
+            "https://linux.do/oauth-provider/userinfo",
+            headers={'Authorization': f'Bearer {access_token}'},
+            timeout=10
+        )
+        
+        if userinfo_response.status_code != 200:
+            flash('获取用户信息失败', 'danger')
+            return redirect(url_for('login'))
+        
+        userinfo = userinfo_response.json()
+        linuxdo_id = userinfo.get('id')
+        username = userinfo.get('username')
+        
+        if not linuxdo_id or not username:
+            flash('无效的用户信息', 'danger')
+            return redirect(url_for('login'))
+        
+        if is_bind:
+            user = User.query.get(bind_user_id)
+            if not user:
+                flash('用户不存在', 'danger')
+                return redirect(url_for('dashboard'))
+            
+            existing_user = User.query.filter_by(linuxdo_id=linuxdo_id).first()
+            if existing_user and existing_user.id != user.id:
+                flash('该LinuxDo账户已绑定到其他用户', 'danger')
+                return redirect(url_for('dashboard'))
+            
+            user.linuxdo_id = linuxdo_id
+            db.session.commit()
+            flash('LinuxDo账户绑定成功！现在可以使用LinuxDo登录了', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            user = User.query.filter_by(linuxdo_id=linuxdo_id).first()
+            
+            if not user:
+                flash('该LinuxDo账户未绑定，请先使用密码登录后在用户中心绑定', 'danger')
+                return redirect(url_for('login'))
+            
+            if user.is_banned:
+                flash('您的账户已被禁用', 'danger')
+                return redirect(url_for('login'))
+            
+            login_user(user)
+            flash('登录成功', 'success')
+            return redirect(url_for('dashboard'))
+        
+    except requests.exceptions.RequestException:
+        flash('网络请求超时，请重试', 'danger')
+        return redirect(url_for('login'))
+    except Exception as e:
+        flash('操作失败，请重试', 'danger')
+        return redirect(url_for('login'))
+
+
 @app.route('/')
 def index():
     announcements = Announcement.query.filter_by(is_active=True).order_by(Announcement.created_at.desc()).all()
@@ -1099,7 +1269,8 @@ def login():
                            telegram_bot_username=TELEGRAM_BOT_USERNAME,
                            google_enabled=GOOGLE_ENABLED,
                            google_client_id=GOOGLE_CLIENT_ID,
-                           google_redirect_uri=GOOGLE_REDIRECT_URI)
+                           google_redirect_uri=GOOGLE_REDIRECT_URI,
+                           linuxdo_enabled=LINUXDO_ENABLED)
 
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
@@ -1314,7 +1485,8 @@ def dashboard():
                            nodeloc_enabled=NODELOC_ENABLED,
                            telegram_enabled=TELEGRAM_ENABLED,
                            telegram_bot_username=TELEGRAM_BOT_USERNAME,
-                           google_enabled=GOOGLE_ENABLED)
+                           google_enabled=GOOGLE_ENABLED,
+                           linuxdo_enabled=LINUXDO_ENABLED)
 
 
 @app.route('/create-email', methods=['POST'])
