@@ -2,183 +2,242 @@ from app import app, db
 from datetime import datetime
 from sqlalchemy import text
 
+def update_database_structure():
+    """更新数据库结构"""
+    print("\n正在检查并更新数据库结构...")
+    
+    try:
+        with db.engine.connect() as conn:
+            # 检查并添加 smtp_server 列
+            try:
+                conn.execute(text("SELECT smtp_server FROM site_settings LIMIT 1"))
+                print("✓ smtp_server 列已存在")
+            except:
+                conn.execute(text("ALTER TABLE site_settings ADD COLUMN smtp_server VARCHAR(200) DEFAULT 'smtp.example.com'"))
+                conn.execute(text("COMMIT"))
+                print("✓ 已添加 smtp_server 列")
+            
+            # 检查并添加 imap_server 列
+            try:
+                conn.execute(text("SELECT imap_server FROM site_settings LIMIT 1"))
+                print("✓ imap_server 列已存在")
+            except:
+                conn.execute(text("ALTER TABLE site_settings ADD COLUMN imap_server VARCHAR(200) DEFAULT 'imap.example.com'"))
+                conn.execute(text("COMMIT"))
+                print("✓ 已添加 imap_server 列")
+            
+            # 检查并添加 pop3_server 列
+            try:
+                conn.execute(text("SELECT pop3_server FROM site_settings LIMIT 1"))
+                print("✓ pop3_server 列已存在")
+            except:
+                conn.execute(text("ALTER TABLE site_settings ADD COLUMN pop3_server VARCHAR(200) DEFAULT 'pop3.example.com'"))
+                conn.execute(text("COMMIT"))
+                print("✓ 已添加 pop3_server 列")
+            
+            # 检查并添加 webmail_url 列
+            try:
+                conn.execute(text("SELECT webmail_url FROM site_settings LIMIT 1"))
+                print("✓ webmail_url 列已存在")
+            except:
+                conn.execute(text("ALTER TABLE site_settings ADD COLUMN webmail_url VARCHAR(500) DEFAULT 'https://mail.example.com'"))
+                conn.execute(text("COMMIT"))
+                print("✓ 已添加 webmail_url 列")
+            
+            # 检查并添加 nodeloc_id 列
+            try:
+                conn.execute(text("SELECT nodeloc_id FROM user LIMIT 1"))
+                print("✓ nodeloc_id 列已存在")
+            except:
+                try:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN nodeloc_id BIGINT UNIQUE"))
+                    conn.execute(text("COMMIT"))
+                    print("✓ 已添加 nodeloc_id 列")
+                except Exception as e:
+                    print(f"  nodeloc_id 列添加跳过: {e}")
+            
+            # 检查并添加 telegram_id 列
+            try:
+                conn.execute(text("SELECT telegram_id FROM user LIMIT 1"))
+                print("✓ telegram_id 列已存在")
+            except:
+                try:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN telegram_id BIGINT UNIQUE"))
+                    conn.execute(text("COMMIT"))
+                    print("✓ 已添加 telegram_id 列")
+                except Exception as e:
+                    print(f"  telegram_id 列添加跳过: {e}")
+            
+            # 检查并添加 google_id 列
+            try:
+                conn.execute(text("SELECT google_id FROM user LIMIT 1"))
+                print("✓ google_id 列已存在")
+            except:
+                try:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN google_id VARCHAR(100) UNIQUE"))
+                    conn.execute(text("COMMIT"))
+                    print("✓ 已添加 google_id 列")
+                except Exception as e:
+                    print(f"  google_id 列添加跳过: {e}")
+            
+            # 检查并添加 linuxdo_id 列
+            try:
+                conn.execute(text("SELECT linuxdo_id FROM user LIMIT 1"))
+                print("✓ linuxdo_id 列已存在")
+            except:
+                try:
+                    conn.execute(text("ALTER TABLE user ADD COLUMN linuxdo_id BIGINT UNIQUE"))
+                    conn.execute(text("COMMIT"))
+                    print("✓ 已添加 linuxdo_id 列")
+                except Exception as e:
+                    print(f"  linuxdo_id 列添加跳过: {e}")
+        
+    except Exception as e:
+        print(f"  数据库结构检查跳过: {e}")
+
+def init_default_data():
+    """初始化默认数据"""
+    print("\n正在初始化默认数据...")
+    
+    from app import User, SiteSettings, UserAgreement, AboutPage, PrefixBlacklist, AllowedEmailSuffix
+    
+    # 初始化站点设置
+    if not SiteSettings.query.first():
+        settings = SiteSettings()
+        db.session.add(settings)
+        db.session.commit()
+        print("✓ 站点设置初始化完成")
+    else:
+        print("✓ 站点设置已存在")
+    
+    # 初始化用户协议
+    if not UserAgreement.query.first():
+        agreement = UserAgreement()
+        db.session.add(agreement)
+        db.session.commit()
+        print("✓ 用户协议初始化完成")
+    else:
+        print("✓ 用户协议已存在")
+    
+    # 初始化关于页面
+    if not AboutPage.query.first():
+        about = AboutPage()
+        db.session.add(about)
+        db.session.commit()
+        print("✓ 关于页面初始化完成")
+    else:
+        print("✓ 关于页面已存在")
+    
+    # 初始化邮箱前缀黑名单
+    default_prefixes = [
+        'system', 'admin', 'administrator', 'root', 'host',
+        'report', 'abuse', 'support', 'help', 'info',
+        'contact', 'postmaster', 'webmaster', 'mailer-daemon',
+        'noreply', 'no-reply', 'service', 'services',
+        'security', 'privacy', 'legal', 'compliance',
+        'billing', 'payment', 'sales', 'marketing',
+        'press', 'media', 'pr', 'feedback',
+        'careers', 'jobs', 'hr', 'recruitment',
+        'dev', 'developer', 'api', 'api-admin',
+        'test', 'demo', 'example', 'sample',
+        'temp', 'tmp', 'guest', 'anonymous',
+        'user', 'users', 'member', 'members',
+        'customer', 'customers', 'client', 'clients',
+        'partner', 'partners', 'vendor', 'vendors',
+        'supplier', 'suppliers', 'manager', 'management',
+        'ceo', 'cfo', 'cto', 'director',
+        'executive', 'lead', 'head', 'owner',
+        'founder', 'co-founder', 'chairman', 'board',
+        'trustee', 'moderator', 'mod', 'supermod',
+        'superuser', 'su', 'sudo', 'wheel',
+        'staff', 'team', 'crew', 'office',
+        'office@', 'mail', 'mailbox', 'inbox',
+        'outbox', 'spam', 'trash', 'archive',
+        'draft', 'drafts', 'sent', 'sentmail'
+    ]
+    
+    existing_prefixes = [p.prefix for p in PrefixBlacklist.query.all()]
+    added_count = 0
+    for prefix in default_prefixes:
+        if prefix not in existing_prefixes:
+            p = PrefixBlacklist(prefix=prefix)
+            db.session.add(p)
+            added_count += 1
+    db.session.commit()
+    print(f"✓ 邮箱前缀黑名单初始化完成（新增 {added_count} 个）")
+    
+    # 初始化允许的邮箱后缀
+    default_suffixes = [
+        '@gmail.com', '@hotmail.com', '@yahoo.com', '@qq.com',
+        '@163.com', '@126.com', '@88.com', '@vip.qq.com',
+        '@outlook.com', '@icloud.com', '@sina.com', '@sohu.com',
+        '@aliyun.com', '@foxmail.com', '@yeah.com', '@me.com', '@mail.com'
+    ]
+    
+    existing_suffixes = [s.suffix for s in AllowedEmailSuffix.query.all()]
+    added_suffix_count = 0
+    for suffix in default_suffixes:
+        if suffix not in existing_suffixes:
+            s = AllowedEmailSuffix(suffix=suffix)
+            db.session.add(s)
+            added_suffix_count += 1
+    db.session.commit()
+    print(f"✓ 允许的邮箱后缀初始化完成（新增 {added_suffix_count} 个）")
+    
+    # 初始化默认Owner账户
+    import os
+    admin_username = os.getenv('ADMIN_USERNAME', 'admin')
+    admin_email = os.getenv('ADMIN_EMAIL', 'admin@example.com')
+    admin_password = os.getenv('ADMIN_PASSWORD', 'admin123')
+    
+    if not User.query.filter_by(role='owner').first():
+        from app import generate_uid
+        admin = User(
+            username=admin_username,
+            email=admin_email,
+            is_admin=True,
+            is_verified=True,
+            uid=generate_uid(),
+            role='owner'
+        )
+        admin.set_password(admin_password)
+        db.session.add(admin)
+        db.session.commit()
+        print(f"✓ 默认Owner账户创建成功")
+        print(f"  用户名: {admin_username}")
+        print(f"  密码: {admin_password}")
+        print(f"  邮箱: {admin_email}")
+    else:
+        print(f"✓ Owner账户已存在")
+
 def init_database():
+    """完整的数据库初始化流程"""
     with app.app_context():
         print("正在创建所有数据表...")
         db.create_all()
         print("✓ 数据表创建完成")
         
-        print("\n正在检查并更新数据库结构...")
-        
-        try:
-            with db.engine.connect() as conn:
-                # 检查并添加 nodeloc_id 列（如果不存在）
-                try:
-                    conn.execute(text("SELECT nodeloc_id FROM user LIMIT 1"))
-                    print("✓ nodeloc_id 列已存在")
-                except:
-                    try:
-                        conn.execute(text("ALTER TABLE user ADD COLUMN nodeloc_id BIGINT UNIQUE"))
-                        conn.execute(text("COMMIT"))
-                        print("✓ 已添加 nodeloc_id 列")
-                    except Exception as e:
-                        print(f"  nodeloc_id 列添加跳过: {e}")
-                
-                # 检查并添加 telegram_id 列（如果不存在）
-                try:
-                    conn.execute(text("SELECT telegram_id FROM user LIMIT 1"))
-                    print("✓ telegram_id 列已存在")
-                except:
-                    try:
-                        conn.execute(text("ALTER TABLE user ADD COLUMN telegram_id BIGINT UNIQUE"))
-                        conn.execute(text("COMMIT"))
-                        print("✓ 已添加 telegram_id 列")
-                    except Exception as e:
-                        print(f"  telegram_id 列添加跳过: {e}")
-                
-                # 检查并添加 google_id 列（如果不存在）
-                try:
-                    conn.execute(text("SELECT google_id FROM user LIMIT 1"))
-                    print("✓ google_id 列已存在")
-                except:
-                    try:
-                        conn.execute(text("ALTER TABLE user ADD COLUMN google_id VARCHAR(100) UNIQUE"))
-                        conn.execute(text("COMMIT"))
-                        print("✓ 已添加 google_id 列")
-                    except Exception as e:
-                        print(f"  google_id 列添加跳过: {e}")
-                
-                # 检查并添加 linuxdo_id 列（如果不存在）
-                try:
-                    conn.execute(text("SELECT linuxdo_id FROM user LIMIT 1"))
-                    print("✓ linuxdo_id 列已存在")
-                except:
-                    try:
-                        conn.execute(text("ALTER TABLE user ADD COLUMN linuxdo_id BIGINT UNIQUE"))
-                        conn.execute(text("COMMIT"))
-                        print("✓ 已添加 linuxdo_id 列")
-                    except Exception as e:
-                        print(f"  linuxdo_id 列添加跳过: {e}")
-        
-        except Exception as e:
-            print(f"  数据库结构检查跳过: {e}")
-        
-        print("\n正在初始化默认数据...")
-        
-        from app import User, SiteSettings, UserAgreement, AboutPage, PrefixBlacklist, AllowedEmailSuffix
-        
-        # 初始化站点设置
-        if not SiteSettings.query.first():
-            settings = SiteSettings()
-            db.session.add(settings)
-            db.session.commit()
-            print("✓ 站点设置初始化完成")
-        else:
-            print("✓ 站点设置已存在")
-        
-        # 初始化用户协议
-        if not UserAgreement.query.first():
-            agreement = UserAgreement()
-            db.session.add(agreement)
-            db.session.commit()
-            print("✓ 用户协议初始化完成")
-        else:
-            print("✓ 用户协议已存在")
-        
-        # 初始化关于页面
-        if not AboutPage.query.first():
-            about = AboutPage()
-            db.session.add(about)
-            db.session.commit()
-            print("✓ 关于页面初始化完成")
-        else:
-            print("✓ 关于页面已存在")
-        
-        # 初始化邮箱前缀黑名单
-        default_prefixes = [
-            'system', 'admin', 'administrator', 'root', 'host',
-            'report', 'abuse', 'support', 'help', 'info',
-            'contact', 'postmaster', 'webmaster', 'mailer-daemon',
-            'noreply', 'no-reply', 'service', 'services',
-            'security', 'privacy', 'legal', 'compliance',
-            'billing', 'payment', 'sales', 'marketing',
-            'press', 'media', 'pr', 'feedback',
-            'careers', 'jobs', 'hr', 'recruitment',
-            'dev', 'developer', 'api', 'api-admin',
-            'test', 'demo', 'example', 'sample',
-            'temp', 'tmp', 'guest', 'anonymous',
-            'user', 'users', 'member', 'members',
-            'customer', 'customers', 'client', 'clients',
-            'partner', 'partners', 'vendor', 'vendors',
-            'supplier', 'suppliers', 'manager', 'management',
-            'ceo', 'cfo', 'cto', 'director',
-            'executive', 'lead', 'head', 'owner',
-            'founder', 'co-founder', 'chairman', 'board',
-            'trustee', 'moderator', 'mod', 'supermod',
-            'superuser', 'su', 'sudo', 'wheel',
-            'staff', 'team', 'crew', 'office',
-            'office@', 'mail', 'mailbox', 'inbox',
-            'outbox', 'spam', 'trash', 'archive',
-            'draft', 'drafts', 'sent', 'sentmail'
-        ]
-        
-        existing_prefixes = [p.prefix for p in PrefixBlacklist.query.all()]
-        added_count = 0
-        for prefix in default_prefixes:
-            if prefix not in existing_prefixes:
-                p = PrefixBlacklist(prefix=prefix)
-                db.session.add(p)
-                added_count += 1
-        db.session.commit()
-        print(f"✓ 邮箱前缀黑名单初始化完成（新增 {added_count} 个）")
-        
-        # 初始化允许的邮箱后缀
-        default_suffixes = [
-            '@gmail.com', '@hotmail.com', '@yahoo.com', '@qq.com',
-            '@163.com', '@126.com', '@88.com', '@vip.qq.com',
-            '@outlook.com', '@icloud.com', '@sina.com', '@sohu.com',
-            '@aliyun.com', '@foxmail.com', '@yeah.com', '@me.com', '@mail.com'
-        ]
-        
-        existing_suffixes = [s.suffix for s in AllowedEmailSuffix.query.all()]
-        added_suffix_count = 0
-        for suffix in default_suffixes:
-            if suffix not in existing_suffixes:
-                s = AllowedEmailSuffix(suffix=suffix)
-                db.session.add(s)
-                added_suffix_count += 1
-        db.session.commit()
-        print(f"✓ 允许的邮箱后缀初始化完成（新增 {added_suffix_count} 个）")
-        
-        # 初始化默认Owner账户
-        import os
-        admin_username = os.getenv('ADMIN_USERNAME', 'admin')
-        admin_email = os.getenv('ADMIN_EMAIL', 'admin@example.com')
-        admin_password = os.getenv('ADMIN_PASSWORD', 'admin123')
-        
-        if not User.query.filter_by(role='owner').first():
-            from app import generate_uid
-            admin = User(
-                username=admin_username,
-                email=admin_email,
-                is_admin=True,
-                is_verified=True,
-                uid=generate_uid(),
-                role='owner'
-            )
-            admin.set_password(admin_password)
-            db.session.add(admin)
-            db.session.commit()
-            print(f"✓ 默认Owner账户创建成功")
-            print(f"  用户名: {admin_username}")
-            print(f"  密码: {admin_password}")
-            print(f"  邮箱: {admin_email}")
-        else:
-            print(f"✓ Owner账户已存在")
+        update_database_structure()
+        init_default_data()
         
         print("\n========================================")
         print("数据库初始化完成！")
         print("========================================")
 
+def update_database():
+    """仅更新数据库结构（不重新初始化数据）"""
+    with app.app_context():
+        print("正在检查并更新数据库结构...")
+        update_database_structure()
+        
+        print("\n========================================")
+        print("数据库更新完成！")
+        print("========================================")
+
 if __name__ == '__main__':
-    init_database()
+    import sys
+    
+    if len(sys.argv) > 1 and sys.argv[1] == 'update':
+        update_database()
+    else:
+        init_database()

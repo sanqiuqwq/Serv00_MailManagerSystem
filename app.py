@@ -967,7 +967,7 @@ def auth_linuxdo():
     state = secrets.token_urlsafe(32)
     session['linuxdo_state'] = state
     
-    auth_url = f"https://linux.do/oauth-provider/authorize?client_id={LINUXDO_CLIENT_ID}&redirect_uri={LINUXDO_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
+    auth_url = f"https://connect.linux.do/oauth2/authorize?client_id={LINUXDO_CLIENT_ID}&redirect_uri={LINUXDO_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
     return redirect(auth_url)
 
 
@@ -982,7 +982,7 @@ def auth_linuxdo_bind():
     session['linuxdo_bind_state'] = state
     session['linuxdo_bind_user_id'] = current_user.id
     
-    auth_url = f"https://linux.do/oauth-provider/authorize?client_id={LINUXDO_CLIENT_ID}&redirect_uri={LINUXDO_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
+    auth_url = f"https://connect.linux.do/oauth2/authorize?client_id={LINUXDO_CLIENT_ID}&redirect_uri={LINUXDO_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
     return redirect(auth_url)
 
 
@@ -1038,7 +1038,7 @@ def auth_linuxdo_callback():
         }
         
         token_response = requests.post(
-            "https://linux.do/oauth-provider/token",
+            "https://connect.linux.do/oauth2/token",
             data=token_data,
             headers={'Content-Type': 'application/x-www-form-urlencoded'},
             timeout=10
@@ -1056,7 +1056,7 @@ def auth_linuxdo_callback():
             return redirect(url_for('login'))
         
         userinfo_response = requests.get(
-            "https://linux.do/oauth-provider/userinfo",
+            "https://connect.linux.do/api/user",
             headers={'Authorization': f'Bearer {access_token}'},
             timeout=10
         )

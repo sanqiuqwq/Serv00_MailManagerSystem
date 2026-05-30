@@ -77,20 +77,16 @@ python init_db.py
 
 5. （可选）如果已有数据库需要更新，运行：
 ```bash
-python update_db.py
+python init_db.py update
 ```
 
-6. （可选）如果已启用 Telegram 或 NodeLoc 登录但数据库列类型不正确，运行：
-```bash
-python migrate_telegram_id.py
-```
 
-7. 运行项目：
+6. 运行项目：
 ```bash
 python app.py
 ```
 
-8. 访问网站：
+7. 访问网站：
 打开浏览器访问 `http://localhost:5000`
 
 ## 默认Owner账户
@@ -355,7 +351,7 @@ NODELOC_REDIRECT_URI=https://你的域名/auth/nodeloc/callback
 
 4. 更新数据库（如果需要）：
 ```bash
-python update_db.py
+python init_db.py update
 ```
 
 ### 用户使用流程
@@ -388,13 +384,9 @@ TELEGRAM_BOT_USERNAME=你的Bot用户名（例如：your_bot）
 
 4. 更新数据库（如果需要）：
 ```bash
-python update_db.py
+python init_db.py update
 ```
 
-5. （可选）如果数据库列类型不正确，运行：
-```bash
-python migrate_telegram_id.py
-```
 
 ### 用户使用流程
 
@@ -442,7 +434,7 @@ GOOGLE_REDIRECT_URI=https://你的域名/auth/google/callback
 
 5. 更新数据库（如果需要）：
 ```bash
-python update_db.py
+python init_db.py update
 ```
 
 ### 用户使用流程
@@ -464,8 +456,8 @@ python update_db.py
 ### 配置步骤
 
 1. 创建 LinuxDo OAuth 应用：
-   - 访问：https://linux.do/oauth-provider/applications
-   - 点击"新建应用"
+   - 访问：https://connect.linux.do/dash/sso
+   - 登录后创建 OAuth 应用
    - 填写应用名称和描述
 
 2. 配置应用：
@@ -487,7 +479,7 @@ LINUXDO_REDIRECT_URI=https://你的域名/auth/linuxdo/callback
 
 5. 更新数据库（如果需要）：
 ```bash
-python update_db.py
+python init_db.py update
 ```
 
 ### 用户使用流程
