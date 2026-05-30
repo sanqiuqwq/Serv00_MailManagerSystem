@@ -54,4 +54,31 @@
         </form>
     </div>
 </div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        邮件服务器设置
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="smtp_server" class="form-label">SMTP服务器</label>
+                <input type="text" class="form-control" id="smtp_server" name="smtp_server" value="{{ site_settings.smtp_server }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="imap_server" class="form-label">IMAP服务器</label>
+                <input type="text" class="form-control" id="imap_server" name="imap_server" value="{{ site_settings.imap_server }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="pop3_server" class="form-label">POP3服务器</label>
+                <input type="text" class="form-control" id="pop3_server" name="pop3_server" value="{{ site_settings.pop3_server }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="webmail_url" class="form-label">网页版邮箱链接</label>
+                <input type="text" class="form-control" id="webmail_url" name="webmail_url" value="{{ site_settings.webmail_url }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">保存设置</button>
+        </form>
+    </div>
+</div>
 {% endblock %}

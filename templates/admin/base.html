@@ -47,6 +47,12 @@
             <a href="{{ url_for('admin_settings') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_settings' %}active{% endif %}">
                 站点设置
             </a>
+            <a href="{{ url_for('admin_about_system') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_about_system' %}active{% endif %}">
+                关于系统
+            </a>
+            <a href="{{ url_for('admin_check_update') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin_check_update' %}active{% endif %}">
+                检查更新
+            </a>
             {% endif %}
         </div>
     </div>

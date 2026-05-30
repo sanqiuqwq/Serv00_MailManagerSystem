@@ -69,15 +69,6 @@ def update_database():
                     conn.execute(text("ALTER TABLE user ADD COLUMN google_id VARCHAR(100) UNIQUE"))
                     conn.execute(text("COMMIT"))
                     print("✓ 已添加 google_id 列")
-                
-                # 检查并添加 linuxdo_id 列
-                try:
-                    conn.execute(text("SELECT linuxdo_id FROM user LIMIT 1"))
-                    print("✓ linuxdo_id 列已存在")
-                except:
-                    conn.execute(text("ALTER TABLE user ADD COLUMN linuxdo_id BIGINT UNIQUE"))
-                    conn.execute(text("COMMIT"))
-                    print("✓ 已添加 linuxdo_id 列")
             
             print("\n========================================")
             print("数据库更新完成！")

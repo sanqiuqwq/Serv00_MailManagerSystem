@@ -560,16 +560,6 @@ def inject_telegram_config():
     return dict(telegram_enabled=TELEGRAM_ENABLED, telegram_bot_username=TELEGRAM_BOT_USERNAME)
 
 
-@app.context_processor
-def inject_google_config():
-    return dict(google_enabled=GOOGLE_ENABLED)
-
-
-@app.context_processor
-def inject_linuxdo_config():
-    return dict(linuxdo_enabled=LINUXDO_ENABLED)
-
-
 @app.route('/auth/nodeloc')
 def auth_nodeloc():
     if not NODELOC_ENABLED or not NODELOC_CLIENT_ID or not NODELOC_REDIRECT_URI:
@@ -964,10 +954,22 @@ def auth_linuxdo():
         flash('LinuxDo登录未启用', 'danger')
         return redirect(url_for('login'))
     
-    state = secrets.token_urlsafe(32)
-    session['linuxdo_state'] = state
+    import urllib.parse
+    import uuid
     
-    auth_url = f"https://connect.linux.do/oauth2/authorize?client_id={LINUXDO_CLIENT_ID}&redirect_uri={LINUXDO_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
+    state = str(uuid.uuid4())
+    session['linuxdo_state'] = state
+    session['linuxdo_mode'] = 'login'
+    
+    params = {
+        'client_id': LINUXDO_CLIENT_ID,
+        'redirect_uri': LINUXDO_REDIRECT_URI,
+        'response_type': 'code',
+        'scope': 'openid profile',
+        'state': state
+    }
+    
+    auth_url = f'https://connect.linux.do/oauth2/authorize?{urllib.parse.urlencode(params)}'
     return redirect(auth_url)
 
 
@@ -978,113 +980,83 @@ def auth_linuxdo_bind():
         flash('LinuxDo登录未启用', 'danger')
         return redirect(url_for('dashboard'))
     
-    state = secrets.token_urlsafe(32)
-    session['linuxdo_bind_state'] = state
-    session['linuxdo_bind_user_id'] = current_user.id
+    import urllib.parse
+    import uuid
     
-    auth_url = f"https://connect.linux.do/oauth2/authorize?client_id={LINUXDO_CLIENT_ID}&redirect_uri={LINUXDO_REDIRECT_URI}&response_type=code&scope=openid%20profile%20email&state={state}"
+    state = str(uuid.uuid4())
+    session['linuxdo_state'] = state
+    session['linuxdo_mode'] = 'bind'
+    
+    params = {
+        'client_id': LINUXDO_CLIENT_ID,
+        'redirect_uri': LINUXDO_REDIRECT_URI,
+        'response_type': 'code',
+        'scope': 'openid profile',
+        'state': state
+    }
+    
+    auth_url = f'https://connect.linux.do/oauth2/authorize?{urllib.parse.urlencode(params)}'
     return redirect(auth_url)
-
-
-@app.route('/auth/linuxdo/unbind')
-@login_required
-def auth_linuxdo_unbind():
-    if current_user.linuxdo_id:
-        current_user.linuxdo_id = None
-        db.session.commit()
-        flash('LinuxDo账户解绑成功', 'success')
-    return redirect(url_for('dashboard'))
 
 
 @app.route('/auth/linuxdo/callback')
 def auth_linuxdo_callback():
-    if not LINUXDO_ENABLED:
+    if not LINUXDO_ENABLED or not LINUXDO_CLIENT_ID or not LINUXDO_CLIENT_SECRET:
         flash('LinuxDo登录未启用', 'danger')
         return redirect(url_for('login'))
     
     code = request.args.get('code')
     state = request.args.get('state')
-    error = request.args.get('error')
     
-    if error:
-        flash('LinuxDo授权失败', 'danger')
+    if state != session.get('linuxdo_state'):
+        flash('验证失败', 'danger')
         return redirect(url_for('login'))
     
-    if not code or not state:
-        flash('无效的请求', 'danger')
-        return redirect(url_for('login'))
+    linuxdo_mode = session.get('linuxdo_mode', 'login')
     
-    is_bind = False
-    bind_user_id = None
-    
-    if state == session.get('linuxdo_bind_state'):
-        is_bind = True
-        bind_user_id = session.get('linuxdo_bind_user_id')
-        session.pop('linuxdo_bind_state', None)
-        session.pop('linuxdo_bind_user_id', None)
-    elif state == session.get('linuxdo_state'):
-        session.pop('linuxdo_state', None)
-    else:
-        flash('无效的请求', 'danger')
-        return redirect(url_for('login'))
+    token_data = {
+        'client_id': LINUXDO_CLIENT_ID,
+        'client_secret': LINUXDO_CLIENT_SECRET,
+        'code': code,
+        'grant_type': 'authorization_code',
+        'redirect_uri': LINUXDO_REDIRECT_URI
+    }
     
     try:
-        token_data = {
-            'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': LINUXDO_REDIRECT_URI,
-            'client_id': LINUXDO_CLIENT_ID,
-            'client_secret': LINUXDO_CLIENT_SECRET
-        }
-        
         token_response = requests.post(
-            "https://connect.linux.do/oauth2/token",
+            'https://connect.linux.do/oauth2/token',
             data=token_data,
-            headers={'Content-Type': 'application/x-www-form-urlencoded'},
             timeout=10
         )
-        
-        if token_response.status_code != 200:
-            flash('获取Token失败', 'danger')
-            return redirect(url_for('login'))
-        
         token_json = token_response.json()
-        access_token = token_json.get('access_token')
         
-        if not access_token:
-            flash('无效的Token响应', 'danger')
+        if 'access_token' not in token_json:
+            flash('LinuxDo操作失败', 'danger')
             return redirect(url_for('login'))
         
-        userinfo_response = requests.get(
-            "https://connect.linux.do/api/user",
-            headers={'Authorization': f'Bearer {access_token}'},
+        user_info_response = requests.get(
+            'https://connect.linux.do/api/user',
+            headers={'Authorization': f'Bearer {token_json["access_token"]}'},
             timeout=10
         )
+        user_info = user_info_response.json()
         
-        if userinfo_response.status_code != 200:
-            flash('获取用户信息失败', 'danger')
+        linuxdo_id = user_info.get('id')
+        if not linuxdo_id:
+            flash('LinuxDo操作失败', 'danger')
             return redirect(url_for('login'))
         
-        userinfo = userinfo_response.json()
-        linuxdo_id = userinfo.get('id')
-        username = userinfo.get('username')
-        
-        if not linuxdo_id or not username:
-            flash('无效的用户信息', 'danger')
-            return redirect(url_for('login'))
-        
-        if is_bind:
-            user = User.query.get(bind_user_id)
-            if not user:
-                flash('用户不存在', 'danger')
-                return redirect(url_for('dashboard'))
+        if linuxdo_mode == 'bind':
+            if not current_user.is_authenticated:
+                flash('请先登录', 'danger')
+                return redirect(url_for('login'))
             
             existing_user = User.query.filter_by(linuxdo_id=linuxdo_id).first()
-            if existing_user and existing_user.id != user.id:
+            if existing_user and existing_user.id != current_user.id:
                 flash('该LinuxDo账户已绑定到其他用户', 'danger')
                 return redirect(url_for('dashboard'))
             
-            user.linuxdo_id = linuxdo_id
+            current_user.linuxdo_id = linuxdo_id
             db.session.commit()
             flash('LinuxDo账户绑定成功！现在可以使用LinuxDo登录了', 'success')
             return redirect(url_for('dashboard'))
@@ -1103,12 +1075,19 @@ def auth_linuxdo_callback():
             flash('登录成功', 'success')
             return redirect(url_for('dashboard'))
         
-    except requests.exceptions.RequestException:
-        flash('网络请求超时，请重试', 'danger')
-        return redirect(url_for('login'))
     except Exception as e:
-        flash('操作失败，请重试', 'danger')
+        flash(f'LinuxDo操作失败: {str(e)}', 'danger')
         return redirect(url_for('login'))
+
+
+@app.route('/auth/linuxdo/unbind')
+@login_required
+def auth_linuxdo_unbind():
+    if current_user.linuxdo_id:
+        current_user.linuxdo_id = None
+        db.session.commit()
+        flash('LinuxDo账户解绑成功', 'success')
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/')
