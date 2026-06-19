@@ -1,45 +1,49 @@
 {% extends "admin/base.html" %}
 
+{% block title %}检查更新 - {{ site_settings.site_name }}{% endblock %}
+
 {% block admin_content %}
-<div class="card">
-    <div class="card-header bg-info text-white">
-        <h5 class="mb-0">检查更新</h5>
+<div class="glass-card rounded-3xl p-8 mb-6">
+    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+        <i class="fas fa-sync-alt text-cyan-600"></i>检查更新
+    </h1>
+    <p class="text-slate-600">检测系统最新版本</p>
+</div>
+
+<div data-aos="fade-up" class="glass-card rounded-3xl p-8">
+    <div class="mb-6">
+        <p class="mb-2"><strong>当前版本：</strong>{{ current_version }}</p>
+        <p class="mb-2"><strong>最新版本：</strong>{{ latest_version }}</p>
     </div>
-    <div class="card-body">
-        <div class="mb-4">
-            <p><strong>当前版本：</strong>{{ system_version }}</p>
-        </div>
-        
-        {% if error_msg %}
-        <div class="alert alert-danger">
-            {{ error_msg }}
-        </div>
-        {% endif %}
-        
-        {% if update_info %}
-        <div class="card bg-light mb-4">
-            <div class="card-body">
-                <h6 class="card-title">最新版本信息</h6>
-                <p><strong>最新版本：</strong>{{ update_info.version }}</p>
-                <p><strong>更新内容：</strong></p>
-                <p>{{ update_info.update_content }}</p>
-                
-                {% if update_info.version != system_version %}
-                <div class="alert alert-warning mt-3">
-                    <i class="fa fa-exclamation-triangle me-2"></i>有新版本可用！
-                </div>
-                {% else %}
-                <div class="alert alert-success mt-3">
-                    <i class="fa fa-check-circle me-2"></i>当前已是最新版本
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <a href="{{ url_for('admin_check_update') }}" class="btn btn-primary">
-            <i class="fa fa-refresh me-2"></i>重新检查
-        </a>
+
+    {% if has_update %}
+    <div class="alert-warning mb-6">
+        <i class="fas fa-exclamation-triangle mr-2"></i><strong>发现新版本！</strong>请点击下方按钮前往 GitHub 下载。
     </div>
+    <button type="button" class="btn-success" onclick="window.open('{{ release_url }}', '_blank')">
+        <i class="fas fa-download"></i>前往下载
+    </button>
+    {% else %}
+    <div class="alert-success mb-6">
+        <i class="fas fa-check-circle mr-2"></i><strong>已是最新版本！</strong>您当前使用的是最新版本。
+    </div>
+    {% endif %}
+
+    <div class="mt-6">
+        <h2 class="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <i class="fas fa-robot text-indigo-500"></i>AI 更新摘要
+        </h2>
+        <div class="bg-white/50 rounded-2xl p-5 text-sm">
+            {% if ai_summary %}
+                {{ ai_summary|safe }}
+            {% else %}
+                <p class="text-slate-500">暂无AI更新摘要。</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <button type="button" class="btn-success mt-6" onclick="location.reload()">
+        <i class="fas fa-sync-alt"></i>重新检查
+    </button>
 </div>
 {% endblock %}

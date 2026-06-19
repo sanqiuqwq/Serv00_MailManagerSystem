@@ -3,66 +3,82 @@
 {% block title %}管理后台 - {{ site_settings.site_name }}{% endblock %}
 
 {% block admin_content %}
-<h2>管理后台概览</h2>
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="card-title">{{ user_count }}</h3>
-                <p class="card-text">注册用户</p>
-            </div>
+<div class="glass-card rounded-3xl p-8 mb-6">
+    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+        <i class="fas fa-chart-line text-indigo-600"></i>管理概览
+    </h1>
+    <p class="text-slate-600">系统运行状态统计</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div data-aos="fade-up" class="glass-card rounded-3xl p-8 text-center">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-4xl">
+            <i class="fas fa-users"></i>
         </div>
+        <p class="text-5xl font-extrabold gradient-text mb-2">{{ user_count }}</p>
+        <p class="text-slate-600 text-lg">注册用户</p>
     </div>
-    <div class="col-md-6">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="card-title">{{ email_count }}</h3>
-                <p class="card-text">已创建邮箱</p>
-            </div>
+    
+    <div data-aos="fade-up" data-aos-delay="100" class="glass-card rounded-3xl p-8 text-center">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-4xl">
+            <i class="fas fa-envelope"></i>
         </div>
+        <p class="text-5xl font-extrabold gradient-text mb-2">{{ email_count }}</p>
+        <p class="text-slate-600 text-lg">已创建邮箱</p>
     </div>
 </div>
 
-<h3 class="mt-5">数据库清理</h3>
-<div class="row mt-3">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <p class="mb-3">
-                    <strong>待清理项目：</strong><br>
-                    过期验证令牌：{{ expired_tokens_count }} 个<br>
-                    已关闭超过7天的工单：{{ closed_tickets_count }} 个<br>
-                    未验证超过2天的账户：{{ unverified_users_count }} 个
-                </p>
-                <form method="POST" action="{{ url_for('admin_cleanup_all') }}" class="d-inline">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('确定要清理所有数据吗？')">
-                        全部清理
-                    </button>
-                </form>
-                <form method="POST" action="{{ url_for('admin_cleanup_tokens') }}" class="d-inline ms-2">
-                    <button type="submit" class="btn btn-warning" onclick="return confirm('确定要清理过期验证令牌吗？')">
-                        清理过期令牌
-                    </button>
-                </form>
-                <form method="POST" action="{{ url_for('admin_cleanup_tickets') }}" class="d-inline ms-2">
-                    <button type="submit" class="btn btn-warning" onclick="return confirm('确定要清理已关闭超过7天的工单吗？')">
-                        清理关闭工单(>7天)
-                    </button>
-                </form>
-                {% if current_user.is_owner() %}
-                <form method="POST" action="{{ url_for('admin_cleanup_all_tickets') }}" class="d-inline ms-2">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('确定要删除所有已关闭工单吗？此操作不可恢复！')">
-                        删除所有关闭工单
-                    </button>
-                </form>
-                {% endif %}
-                <form method="POST" action="{{ url_for('admin_cleanup_users') }}" class="d-inline ms-2">
-                    <button type="submit" class="btn btn-warning" onclick="return confirm('确定要清理未验证账户吗？')">
-                        清理未验证账户
-                    </button>
-                </form>
-            </div>
+<div data-aos="fade-up" class="glass-card rounded-3xl p-8">
+    <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center text-white text-xl">
+            <i class="fas fa-database"></i>
         </div>
+        <h2 class="text-2xl font-bold text-slate-800">数据库清理</h2>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white/60 rounded-2xl p-5 text-center">
+            <p class="text-3xl font-bold text-indigo-600 mb-1">{{ expired_tokens_count }}</p>
+            <p class="text-sm text-slate-600">过期验证令牌</p>
+        </div>
+        <div class="bg-white/60 rounded-2xl p-5 text-center">
+            <p class="text-3xl font-bold text-emerald-600 mb-1">{{ closed_tickets_count }}</p>
+            <p class="text-sm text-slate-600">已关闭工单(>7天)</p>
+        </div>
+        <div class="bg-white/60 rounded-2xl p-5 text-center">
+            <p class="text-3xl font-bold text-amber-600 mb-1">{{ unverified_users_count }}</p>
+            <p class="text-sm text-slate-600">未验证账户</p>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+        <form method="POST" action="{{ url_for('admin_cleanup_all') }}" class="contents">
+            <button type="submit" class="btn-danger" onclick="return confirm('确定要清理所有数据吗？')">
+                <i class="fas fa-trash-alt"></i>全部清理
+            </button>
+        </form>
+        <form method="POST" action="{{ url_for('admin_cleanup_tokens') }}" class="contents">
+            <button type="submit" class="btn-warning" onclick="return confirm('确定要清理过期验证令牌吗？')">
+                <i class="fas fa-key"></i>清理过期令牌
+            </button>
+        </form>
+        <form method="POST" action="{{ url_for('admin_cleanup_tickets') }}" class="contents">
+            <button type="submit" class="btn-warning" onclick="return confirm('确定要清理已关闭超过7天的工单吗？')">
+                <i class="fas fa-ticket-alt"></i>清理关闭工单
+            </button>
+        </form>
+        {% if current_user.is_owner() %}
+        <form method="POST" action="{{ url_for('admin_cleanup_all_tickets') }}" class="contents">
+            <button type="submit" class="btn-danger" onclick="return confirm('确定要删除所有已关闭工单吗？此操作不可恢复！')">
+                <i class="fas fa-trash"></i>删除所有关闭工单
+            </button>
+        </form>
+        {% endif %}
+        <form method="POST" action="{{ url_for('admin_cleanup_users') }}" class="contents">
+            <button type="submit" class="btn-warning" onclick="return confirm('确定要清理未验证账户吗？')">
+                <i class="fas fa-user-slash"></i>清理未验证账户
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}

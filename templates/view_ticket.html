@@ -3,73 +3,78 @@
 {% block title %}工单 #{{ ticket.id }} - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">{{ ticket.title }}</h5>
+<div data-aos="fade-up">
+    <div class="glass-card rounded-3xl p-6 mb-6">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl shrink-0">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
                 <div>
-                    {% if ticket.status == 'open' %}
-                    <span class="badge bg-success me-2">进行中</span>
-                    {% else %}
-                    <span class="badge bg-secondary me-2">已关闭</span>
-                    {% endif %}
-                    {% if ticket.status == 'open' %}
-                    <a href="{{ url_for('close_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-danger">关闭工单</a>
-                    {% else %}
-                    <a href="{{ url_for('open_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-success">重新打开</a>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="mb-2">
-                    <small class="text-muted">
-                        创建时间: {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }} |
+                    <h1 class="text-2xl font-bold text-slate-800 mb-1">{{ ticket.title }}</h1>
+                    <p class="text-sm text-slate-600">
+                        <i class="far fa-clock mr-1"></i>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}
                         {% if current_user.is_admin %}
-                        用户: {{ ticket.user.username }}
+                        | <i class="fas fa-user mr-1"></i>{{ ticket.user.username }}
                         {% endif %}
-                    </small>
+                    </p>
                 </div>
             </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0">对话记录</h6>
-            </div>
-            <div class="card-body">
-                {% for reply in ticket.replies %}
-                <div class="card mb-3 {% if reply.is_admin %}border-info{% else %}border-secondary{% endif %}">
-                    <div class="card-header {% if reply.is_admin %}bg-info text-white{% else %}bg-secondary text-white{% endif %}">
-                        <strong>{{ reply.user.username }}</strong>
-                        {% if reply.is_admin %}
-                        <span class="badge bg-light text-dark ms-2">管理员</span>
-                        {% endif %}
-                        <span class="float-end">{{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                    </div>
-                    <div class="card-body">
-                        {{ reply.content|safe }}
-                    </div>
-                </div>
-                {% endfor %}
+            <div class="flex items-center gap-3 flex-wrap">
+                {% if ticket.status == 'open' %}
+                <span class="badge-success"><i class="fas fa-circle text-xs mr-1"></i>进行中</span>
+                <a href="{{ url_for('close_ticket', ticket_id=ticket.id) }}" class="btn-danger btn-sm">
+                    <i class="fas fa-times"></i>关闭工单
+                </a>
+                {% else %}
+                <span class="badge-secondary"><i class="fas fa-check-circle text-xs mr-1"></i>已关闭</span>
+                <a href="{{ url_for('open_ticket', ticket_id=ticket.id) }}" class="btn-success btn-sm">
+                    <i class="fas fa-redo"></i>重新打开
+                </a>
+                {% endif %}
             </div>
         </div>
-
-        {% if ticket.status == 'open' %}
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">回复</h6>
-            </div>
-            <div class="card-body">
-                <form method="POST">
-                    <div class="mb-3">
-                        <textarea class="form-control" id="content" name="content" rows="4" placeholder="输入回复内容..." required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">发送</button>
-                </form>
-            </div>
-        </div>
-        {% endif %}
     </div>
+
+    <div data-aos="fade-up" class="glass-card rounded-3xl p-8 mb-6">
+        <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <i class="fas fa-comments text-indigo-600"></i>对话记录
+        </h2>
+        <div class="space-y-4">
+            {% for reply in ticket.replies %}
+            <div class="rounded-2xl p-5 {% if reply.is_admin %}bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200{% else %}bg-white/70 border border-white/80{% endif %}">
+                <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full {% if reply.is_admin %}bg-gradient-to-br from-cyan-500 to-blue-600{% else %}bg-gradient-to-br from-indigo-500 to-purple-600{% endif %} flex items-center justify-center text-white text-sm font-bold">
+                            {{ reply.user.username[0]|upper }}
+                        </div>
+                        <span class="font-bold text-slate-800">{{ reply.user.username }}</span>
+                        {% if reply.is_admin %}
+                        <span class="badge-info text-xs">管理员</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-sm text-slate-500">{{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+                <div class="text-slate-700 leading-relaxed pl-10">
+                    {{ reply.content|safe }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if ticket.status == 'open' %}
+    <div data-aos="fade-up" class="glass-card rounded-3xl p-8">
+        <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <i class="fas fa-reply text-emerald-600"></i>回复
+        </h2>
+        <form method="POST">
+            <textarea class="form-textarea mb-4" name="content" rows="5" placeholder="输入你的回复内容..." required></textarea>
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-paper-plane"></i>发送回复
+            </button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

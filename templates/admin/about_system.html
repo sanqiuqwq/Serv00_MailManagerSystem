@@ -1,59 +1,55 @@
 {% extends "admin/base.html" %}
 
 {% block admin_content %}
-<div class="card">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">关于系统</h5>
+<div class="glass-card rounded-3xl p-8 mb-6">
+    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+        <i class="fas fa-info-circle text-indigo-600"></i>关于系统
+    </h1>
+    <p class="text-slate-600">系统信息与开发人员</p>
+</div>
+
+<div data-aos="fade-up" class="glass-card rounded-3xl p-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div>
+            <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-server text-indigo-500"></i>系统信息
+            </h2>
+            <p class="mb-2"><strong>系统名称：</strong>Serv00_邮箱注册/管理系统</p>
+            <p class="mb-2"><strong>当前版本：</strong>{{ system_version }}</p>
+            <p><strong>开源仓库：</strong>
+                <a href="https://github.com/sanqiuqwq/Serv00_MailManagerSystem" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                    <i class="fab fa-github mr-1"></i>GitHub
+                </a>
+            </p>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-user-circle text-indigo-500"></i>开发人员
+            </h2>
+            <div class="bg-white/50 rounded-2xl p-5">
+                <p class="mb-2"><strong>名称：</strong>nnn</p>
+                <p class="mb-2"><strong>Telegram：</strong>
+                    <a href="https://t.me/qwqtop" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                        <i class="fab fa-telegram mr-1"></i>@qwqtop
+                    </a>
+                </p>
+                <p class="mb-2"><strong>NodeLoc：</strong>
+                    <a href="https://www.nodeloc.com/u/sanqi3737" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                        <i class="fa fa-globe mr-1"></i>sanqi3737
+                    </a>
+                </p>
+                <p><strong>GitHub：</strong>
+                    <a href="https://github.com/sanqiuqwq" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                        <i class="fab fa-github mr-1"></i>sanqiuqwq
+                    </a>
+                </p>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-4">
-                    <h6>系统信息</h6>
-                    <p><strong>系统名称：</strong>Serv00_邮箱注册/管理系统</p>
-                    <p><strong>当前版本：</strong>{{ system_version }}</p>
-                    <p><strong>开源仓库：</strong>
-                        <a href="https://github.com/sanqiuqwq/Serv00_MailManagerSystem" target="_blank">
-                            <i class="fab fa-github me-1"></i>GitHub
-                        </a>
-                    </p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="mb-4">
-                    <h6>开发人员</h6>
-                    <div class="card bg-light p-3">
-                        <p><strong>名称：</strong>nnn</p>
-                        <p><strong>Telegram：</strong>
-                            <a href="https://t.me/qwqtop" target="_blank">
-                                <i class="fab fa-telegram me-1"></i>@qwqtop
-                            </a>
-                        </p>
-                        <p><strong>NodeLoc：</strong>
-                            <a href="https://www.nodeloc.com/u/sanqi3737" target="_blank">
-                                <i class="fa fa-globe me-1"></i>sanqi3737
-                            </a>
-                        </p>
-                        <p><strong>GitHub：</strong>
-                            <a href="https://github.com/sanqiuqwq" target="_blank">
-                                <i class="fab fa-github me-1"></i>sanqiuqwq
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="alert alert-info">
-                    <h6><i class="fas fa-info-circle me-2"></i>第三方库声明</h6>
-                    <p class="mb-0">本项目使用了以下开源项目：</p>
-                    <ul class="mb-0 mt-2">
-                        <li><a href="https://github.com/shuding/liquid-glass" target="_blank">Liquid Glass</a> - 提供液态玻璃效果</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+
+    <div class="alert-info">
+        <i class="fas fa-info-circle mr-2"></i><strong>第三方库声明：</strong>本项目使用了 Tailwind CSS、FontAwesome、AOS 等开源项目。
     </div>
 </div>
 {% endblock %}
+

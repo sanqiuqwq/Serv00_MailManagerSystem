@@ -3,26 +3,35 @@
 {% block title %}创建工单 - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">创建工单</h5>
+<div data-aos="fade-up" class="max-w-2xl mx-auto">
+    <div class="glass-card rounded-3xl p-8">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-3xl">
+                <i class="fas fa-plus-circle"></i>
             </div>
-            <div class="card-body">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="title" class="form-label">工单标题</label>
-                        <input type="text" class="form-control" id="title" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="content" class="form-label">详细内容</label>
-                        <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">提交工单</button>
-                </form>
-            </div>
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">创建工单</h1>
+            <p class="text-slate-600">描述你的问题，我们将尽快回复</p>
         </div>
+
+        <form method="POST" class="space-y-5">
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-heading mr-2 text-emerald-600"></i>工单标题
+                </label>
+                <input type="text" class="form-input" name="title" required placeholder="简要描述你的问题">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-align-left mr-2 text-emerald-600"></i>详细内容
+                </label>
+                <textarea class="form-textarea" name="content" rows="8" required placeholder="请详细描述你遇到的问题或需求..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn-success w-full text-base">
+                <i class="fas fa-paper-plane"></i>提交工单
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}

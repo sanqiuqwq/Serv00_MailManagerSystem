@@ -3,82 +3,91 @@
 {% block title %}站点设置 - {{ site_settings.site_name }}{% endblock %}
 
 {% block admin_content %}
-<h2>站点设置</h2>
-
-<div class="card mt-4">
-    <div class="card-header">
-        基本设置
-    </div>
-    <div class="card-body">
-        <form method="POST">
-            <div class="mb-3">
-                <label for="site_name" class="form-label">站点名称</label>
-                <input type="text" class="form-control" id="site_name" name="site_name" value="{{ site_settings.site_name }}" required>
-            </div>
-            <div class="mb-3">
-                <label for="site_description" class="form-label">站点描述</label>
-                <textarea class="form-control" id="site_description" name="site_description" rows="3" required>{{ site_settings.site_description }}</textarea>
-            </div>
-            <div class="mb-3">
-                <label for="site_url" class="form-label">网站域名</label>
-                <input type="text" class="form-control" id="site_url" name="site_url" value="{{ site_settings.site_url }}" required>
-                <div class="form-text">例如：https://example.com 或 http://localhost:5000</div>
-            </div>
-            <div class="mb-3">
-                <label for="purchase_code_url" class="form-label">购买卡密链接</label>
-                <input type="text" class="form-control" id="purchase_code_url" name="purchase_code_url" value="{{ site_settings.purchase_code_url or '' }}">
-                <div class="form-text">留空则不显示购买卡密按钮，例如：https://example.com/buy</div>
-            </div>
-            <div class="mb-3">
-                <label for="tg_group_url" class="form-label">TG交流群链接</label>
-                <input type="text" class="form-control" id="tg_group_url" name="tg_group_url" value="{{ site_settings.tg_group_url or '' }}">
-                <div class="form-text">留空则不显示TG交流群按钮，例如：https://t.me/groupname</div>
-            </div>
-            <div class="mb-3">
-                <label for="default_user_max_emails" class="form-label">普通用户默认邮箱数量</label>
-                <input type="number" class="form-control" id="default_user_max_emails" name="default_user_max_emails" value="{{ site_settings.default_user_max_emails }}" required min="1">
-            </div>
-            <div class="mb-3">
-                <label for="default_pro_max_emails" class="form-label">Pro用户默认邮箱数量</label>
-                <input type="number" class="form-control" id="default_pro_max_emails" name="default_pro_max_emails" value="{{ site_settings.default_pro_max_emails }}" required min="1">
-            </div>
-            <div class="mb-3">
-                <label for="min_user_prefix_length" class="form-label">普通用户邮箱前缀最少字符数</label>
-                <input type="number" class="form-control" id="min_user_prefix_length" name="min_user_prefix_length" value="{{ site_settings.min_user_prefix_length }}" required min="1">
-            </div>
-            <div class="mb-3">
-                <label for="min_pro_prefix_length" class="form-label">Pro用户邮箱前缀最少字符数</label>
-                <input type="number" class="form-control" id="min_pro_prefix_length" name="min_pro_prefix_length" value="{{ site_settings.min_pro_prefix_length }}" required min="1">
-            </div>
-            <button type="submit" class="btn btn-primary">保存设置</button>
-        </form>
-    </div>
+<div class="glass-card rounded-3xl p-8 mb-6">
+    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+        <i class="fas fa-cog text-indigo-600"></i>站点设置
+    </h1>
+    <p class="text-slate-600">配置系统基本参数</p>
 </div>
 
-<div class="card mt-4">
-    <div class="card-header">
-        邮件服务器设置
-    </div>
-    <div class="card-body">
-        <form method="POST">
-            <div class="mb-3">
-                <label for="smtp_server" class="form-label">SMTP服务器</label>
-                <input type="text" class="form-control" id="smtp_server" name="smtp_server" value="{{ site_settings.smtp_server }}" required>
+<div data-aos="fade-up" class="glass-card rounded-3xl p-8 mb-6">
+    <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+        <i class="fas fa-pencil-alt text-emerald-500"></i>基本设置
+    </h2>
+    <form method="POST" class="space-y-5">
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">站点名称</label>
+            <input type="text" class="form-input" name="site_name" value="{{ site_settings.site_name }}" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">站点描述</label>
+            <textarea class="form-textarea" name="site_description" rows="3" required>{{ site_settings.site_description }}</textarea>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">网站域名</label>
+            <input type="text" class="form-input" name="site_url" value="{{ site_settings.site_url }}" required>
+            <p class="text-xs text-slate-500 mt-1">例如：https://example.com</p>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">购买卡密链接</label>
+            <input type="text" class="form-input" name="purchase_code_url" value="{{ site_settings.purchase_code_url or '' }}">
+            <p class="text-xs text-slate-500 mt-1">留空则不显示购买卡密按钮</p>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">TG交流群链接</label>
+            <input type="text" class="form-input" name="tg_group_url" value="{{ site_settings.tg_group_url or '' }}">
+            <p class="text-xs text-slate-500 mt-1">留空则不显示TG交流群按钮</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">普通用户默认邮箱数量</label>
+                <input type="number" class="form-input" name="default_user_max_emails" value="{{ site_settings.default_user_max_emails }}" required min="1">
             </div>
-            <div class="mb-3">
-                <label for="imap_server" class="form-label">IMAP服务器</label>
-                <input type="text" class="form-control" id="imap_server" name="imap_server" value="{{ site_settings.imap_server }}" required>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Pro用户默认邮箱数量</label>
+                <input type="number" class="form-input" name="default_pro_max_emails" value="{{ site_settings.default_pro_max_emails }}" required min="1">
             </div>
-            <div class="mb-3">
-                <label for="pop3_server" class="form-label">POP3服务器</label>
-                <input type="text" class="form-control" id="pop3_server" name="pop3_server" value="{{ site_settings.pop3_server }}" required>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">普通用户邮箱前缀最少字符数</label>
+                <input type="number" class="form-input" name="min_user_prefix_length" value="{{ site_settings.min_user_prefix_length }}" required min="1">
             </div>
-            <div class="mb-3">
-                <label for="webmail_url" class="form-label">网页版邮箱链接</label>
-                <input type="text" class="form-control" id="webmail_url" name="webmail_url" value="{{ site_settings.webmail_url }}" required>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Pro用户邮箱前缀最少字符数</label>
+                <input type="number" class="form-input" name="min_pro_prefix_length" value="{{ site_settings.min_pro_prefix_length }}" required min="1">
             </div>
-            <button type="submit" class="btn btn-primary">保存设置</button>
-        </form>
-    </div>
+        </div>
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-save"></i>保存设置
+        </button>
+    </form>
+</div>
+
+<div data-aos="fade-up" data-aos-delay="100" class="glass-card rounded-3xl p-8">
+    <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+        <i class="fas fa-envelope text-cyan-500"></i>邮件服务器设置
+    </h2>
+    <form method="POST" class="space-y-5">
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">SMTP服务器</label>
+            <input type="text" class="form-input" name="smtp_server" value="{{ site_settings.smtp_server }}" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">IMAP服务器</label>
+            <input type="text" class="form-input" name="imap_server" value="{{ site_settings.imap_server }}" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">POP3服务器</label>
+            <input type="text" class="form-input" name="pop3_server" value="{{ site_settings.pop3_server }}" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">网页版邮箱链接</label>
+            <input type="text" class="form-input" name="webmail_url" value="{{ site_settings.webmail_url }}" required>
+        </div>
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-save"></i>保存设置
+        </button>
+    </form>
 </div>
 {% endblock %}
