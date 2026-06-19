@@ -1,4 +1,4 @@
 {
-  "version": "1.5.0",
-  "update_content": "本次更新了LinuxDo OAuth 2.0登录功能集成，支持用户在用户中心绑定LinuxDo账户，并在登录页面使用LinuxDo一键登录"
+  "version": "2.0.0",
+  "update_content": "本次更新全面重写了面板UI，带来全新的视觉体验和交互设计"
 }
