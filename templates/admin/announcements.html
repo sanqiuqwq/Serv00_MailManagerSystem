@@ -3,24 +3,31 @@
 {% block title %}公告管理 - {{ site_settings.site_name }}{% endblock %}
 
 {% block admin_content %}
-<div class="glass-card rounded-3xl p-8 mb-6">
-    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-        <i class="fas fa-bullhorn text-cyan-600"></i>公告管理
-    </h1>
-    <p class="text-slate-600">发布和管理系统公告</p>
+<div class="glass-card card-line rounded-3xl p-6 md:p-7 mb-6">
+    <div class="flex items-center gap-3.5">
+        <span class="icon-tile !w-11 !h-11 !rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600">
+            <i class="fas fa-bullhorn"></i>
+        </span>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">公告管理</h1>
+            <p class="text-xs text-slate-500 mt-0.5">发布和管理系统公告</p>
+        </div>
+    </div>
 </div>
 
-<div data-aos="fade-up" class="glass-card rounded-3xl p-8 mb-6">
-    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-        <i class="fas fa-plus-circle text-emerald-600"></i>添加新公告
+<div data-aos="fade-up" class="glass-card rounded-3xl p-6 md:p-7 mb-6">
+    <h2 class="section-title mb-4">
+        <span class="icon-tile !w-8 !h-8 !rounded-lg bg-emerald-500/15 border-emerald-400/25 text-emerald-300 text-xs"><i class="fas fa-plus"></i></span>
+        添加新公告
     </h2>
     <form method="POST" action="{{ url_for('admin_add_announcement') }}" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-2">标题</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">标题</label>
             <input type="text" class="form-input" name="title" required>
         </div>
         <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-2">内容</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">内容</label>
             <textarea class="form-textarea" name="content" rows="4" required></textarea>
         </div>
         <button type="submit" class="btn-success">
@@ -29,7 +36,7 @@
     </form>
 </div>
 
-<div data-aos="fade-up" class="glass-card rounded-3xl p-6 overflow-x-auto">
+<div data-aos="fade-up" class="glass-card rounded-3xl p-2 md:p-4 overflow-x-auto">
     <table class="data-table min-w-full">
         <thead>
             <tr>
@@ -44,9 +51,9 @@
         <tbody>
             {% for announcement in announcements %}
             <tr>
-                <td class="font-mono text-sm">#{{ announcement.id }}</td>
-                <td class="font-bold text-slate-800">{{ announcement.title }}</td>
-                <td class="text-sm">{{ announcement.content[:50] }}{% if announcement.content|length > 50 %}...{% endif %}</td>
+                <td class="font-mono text-xs text-slate-500">#{{ announcement.id }}</td>
+                <td class="font-semibold text-white">{{ announcement.title }}</td>
+                <td class="text-xs text-slate-400 max-w-xs">{{ announcement.content[:50] }}{% if announcement.content|length > 50 %}...{% endif %}</td>
                 <td>
                     {% if announcement.is_active %}
                     <span class="badge-success">显示</span>
@@ -54,15 +61,21 @@
                     <span class="badge-danger">隐藏</span>
                     {% endif %}
                 </td>
-                <td class="text-sm text-slate-600">{{ announcement.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="text-xs text-slate-500">{{ announcement.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ url_for('admin_toggle_announcement', announcement_id=announcement.id) }}" class="btn-warning btn-sm">
-                            {% if announcement.is_active %}<i class="fas fa-eye-slash"></i>隐藏{% else %}<i class="fas fa-eye"></i>显示{% endif %}
-                        </a>
-                        <a href="{{ url_for('admin_delete_announcement', announcement_id=announcement.id) }}" class="btn-danger btn-sm" onclick="return confirm('确定要删除此公告吗？')">
-                            <i class="fas fa-trash"></i>删除
-                        </a>
+                    <div class="flex flex-wrap gap-1.5">
+                        <form method="POST" action="{{ url_for('admin_toggle_announcement', announcement_id=announcement.id) }}" class="contents">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-warning btn-sm">
+                                {% if announcement.is_active %}<i class="fas fa-eye-slash"></i>隐藏{% else %}<i class="fas fa-eye"></i>显示{% endif %}
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin_delete_announcement', announcement_id=announcement.id) }}" class="contents" onsubmit="return confirm('确定要删除此公告吗？')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-danger btn-sm">
+                                <i class="fas fa-trash"></i>删除
+                            </button>
+                        </form>
                     </div>
                 </td>
             </tr>

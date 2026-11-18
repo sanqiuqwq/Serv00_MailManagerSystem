@@ -3,66 +3,87 @@
 {% block content %}
 <div class="flex flex-col lg:flex-row gap-6">
     <div class="lg:hidden">
-        <button id="adminSidebarToggle" class="btn-primary w-full flex items-center justify-center gap-2 py-3">
+        <button id="adminSidebarToggle" class="btn-ghost w-full flex items-center justify-center gap-2 py-3">
             <i class="fas fa-bars"></i>
             <span>打开管理菜单</span>
         </button>
     </div>
 
-    <aside id="adminSidebar" data-aos="fade-right" class="glass-card rounded-3xl p-4 lg:w-64 shrink-0 hidden lg:block">
-        <div class="mb-4 px-3">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">管理后台</h3>
+    <aside id="adminSidebar" data-aos="fade-right" class="hidden lg:block lg:w-64 shrink-0">
+        <div class="glass-card rounded-3xl p-4 lg:sticky lg:top-24">
+            <div class="flex items-center gap-3 px-2 py-3 mb-2">
+                <span class="icon-tile !w-9 !h-9 !rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-xs">
+                    <i class="fas fa-shield-halved"></i>
+                </span>
+                <div class="min-w-0">
+                    <h3 class="text-sm font-semibold text-white leading-tight">管理后台</h3>
+                    <p class="text-[0.68rem] text-slate-500 truncate">{{ current_user.username }} · {{ 'Owner' if current_user.role == 'owner' else ('Pro' if current_user.role == 'pro' else '管理员') }}</p>
+                </div>
+            </div>
+
+            <div class="divider mb-2"></div>
+
+            <nav class="space-y-0.5">
+                <p class="sidebar-label">核心</p>
+                {% if current_user.is_owner() %}
+                <a href="{{ url_for('admin_dashboard') }}" class="sidebar-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-line w-4 text-center"></i>概览
+                </a>
+                {% endif %}
+                <a href="{{ url_for('admin_users') }}" class="sidebar-item {% if request.endpoint == 'admin_users' or request.endpoint == 'admin_change_role' %}active{% endif %}">
+                    <i class="fas fa-users w-4 text-center"></i>用户管理
+                </a>
+                <a href="{{ url_for('admin_codes') }}" class="sidebar-item {% if request.endpoint == 'admin_codes' or request.endpoint == 'admin_create_code' %}active{% endif %}">
+                    <i class="fas fa-ticket w-4 text-center"></i>卡密管理
+                </a>
+                <a href="{{ url_for('admin_tickets') }}" class="sidebar-item {% if request.endpoint == 'admin_tickets' %}active{% endif %}">
+                    <i class="fas fa-headset w-4 text-center"></i>工单管理
+                </a>
+
+                {% if current_user.is_owner() %}
+                <p class="sidebar-label">资源</p>
+                <a href="{{ url_for('admin_domains') }}" class="sidebar-item {% if request.endpoint == 'admin_domains' %}active{% endif %}">
+                    <i class="fas fa-globe w-4 text-center"></i>域名管理
+                </a>
+                <a href="{{ url_for('admin_emails') }}" class="sidebar-item {% if request.endpoint == 'admin_emails' %}active{% endif %}">
+                    <i class="fas fa-envelope w-4 text-center"></i>邮箱管理
+                </a>
+
+                <p class="sidebar-label">内容</p>
+                <a href="{{ url_for('admin_announcements') }}" class="sidebar-item {% if request.endpoint == 'admin_announcements' %}active{% endif %}">
+                    <i class="fas fa-bullhorn w-4 text-center"></i>公告管理
+                </a>
+                <a href="{{ url_for('admin_prefix_blacklist') }}" class="sidebar-item {% if request.endpoint == 'admin_prefix_blacklist' %}active{% endif %}">
+                    <i class="fas fa-ban w-4 text-center"></i>前缀黑名单
+                </a>
+                <a href="{{ url_for('admin_email_suffixes') }}" class="sidebar-item {% if request.endpoint == 'admin_email_suffixes' %}active{% endif %}">
+                    <i class="fas fa-at w-4 text-center"></i>邮箱后缀限制
+                </a>
+                <a href="{{ url_for('admin_about') }}" class="sidebar-item {% if request.endpoint == 'admin_about' %}active{% endif %}">
+                    <i class="fas fa-file-lines w-4 text-center"></i>关于页面
+                </a>
+                <a href="{{ url_for('admin_agreement') }}" class="sidebar-item {% if request.endpoint == 'admin_agreement' %}active{% endif %}">
+                    <i class="fas fa-file-contract w-4 text-center"></i>用户协议
+                </a>
+
+                <p class="sidebar-label">系统</p>
+                <a href="{{ url_for('admin_settings') }}" class="sidebar-item {% if request.endpoint == 'admin_settings' %}active{% endif %}">
+                    <i class="fas fa-gear w-4 text-center"></i>站点设置
+                </a>
+                <a href="{{ url_for('admin_about_system') }}" class="sidebar-item {% if request.endpoint == 'admin_about_system' %}active{% endif %}">
+                    <i class="fas fa-circle-info w-4 text-center"></i>关于系统
+                </a>
+                <a href="{{ url_for('admin_check_update') }}" class="sidebar-item {% if request.endpoint == 'admin_check_update' %}active{% endif %}">
+                    <i class="fas fa-arrows-rotate w-4 text-center"></i>检查更新
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="divider my-3"></div>
+            <a href="{{ url_for('index') }}" class="sidebar-item">
+                <i class="fas fa-arrow-left w-4 text-center"></i>返回前台
+            </a>
         </div>
-        <nav class="space-y-1">
-            {% if current_user.is_owner() %}
-            <a href="{{ url_for('admin_dashboard') }}" class="sidebar-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-                <i class="fas fa-chart-line w-5"></i>概览
-            </a>
-            {% endif %}
-            <a href="{{ url_for('admin_users') }}" class="sidebar-item {% if request.endpoint == 'admin_users' or request.endpoint == 'admin_change_role' %}active{% endif %}">
-                <i class="fas fa-users w-5"></i>用户管理
-            </a>
-            <a href="{{ url_for('admin_codes') }}" class="sidebar-item {% if request.endpoint == 'admin_codes' or request.endpoint == 'admin_create_code' %}active{% endif %}">
-                <i class="fas fa-ticket-alt w-5"></i>卡密管理
-            </a>
-            {% if current_user.is_owner() %}
-            <a href="{{ url_for('admin_domains') }}" class="sidebar-item {% if request.endpoint == 'admin_domains' %}active{% endif %}">
-                <i class="fas fa-globe w-5"></i>域名管理
-            </a>
-            <a href="{{ url_for('admin_emails') }}" class="sidebar-item {% if request.endpoint == 'admin_emails' %}active{% endif %}">
-                <i class="fas fa-envelope w-5"></i>邮箱管理
-            </a>
-            {% endif %}
-            <a href="{{ url_for('admin_tickets') }}" class="sidebar-item {% if request.endpoint == 'admin_tickets' %}active{% endif %}">
-                <i class="fas fa-headset w-5"></i>工单管理
-            </a>
-            {% if current_user.is_owner() %}
-            <a href="{{ url_for('admin_announcements') }}" class="sidebar-item {% if request.endpoint == 'admin_announcements' %}active{% endif %}">
-                <i class="fas fa-bullhorn w-5"></i>公告管理
-            </a>
-            <a href="{{ url_for('admin_prefix_blacklist') }}" class="sidebar-item {% if request.endpoint == 'admin_prefix_blacklist' %}active{% endif %}">
-                <i class="fas fa-ban w-5"></i>前缀黑名单
-            </a>
-            <a href="{{ url_for('admin_email_suffixes') }}" class="sidebar-item {% if request.endpoint == 'admin_email_suffixes' %}active{% endif %}">
-                <i class="fas fa-at w-5"></i>邮箱后缀限制
-            </a>
-            <a href="{{ url_for('admin_about') }}" class="sidebar-item {% if request.endpoint == 'admin_about' %}active{% endif %}">
-                <i class="fas fa-file-alt w-5"></i>关于页面
-            </a>
-            <a href="{{ url_for('admin_agreement') }}" class="sidebar-item {% if request.endpoint == 'admin_agreement' %}active{% endif %}">
-                <i class="fas fa-file-contract w-5"></i>用户协议
-            </a>
-            <a href="{{ url_for('admin_settings') }}" class="sidebar-item {% if request.endpoint == 'admin_settings' %}active{% endif %}">
-                <i class="fas fa-cog w-5"></i>站点设置
-            </a>
-            <a href="{{ url_for('admin_about_system') }}" class="sidebar-item {% if request.endpoint == 'admin_about_system' %}active{% endif %}">
-                <i class="fas fa-info-circle w-5"></i>关于系统
-            </a>
-            <a href="{{ url_for('admin_check_update') }}" class="sidebar-item {% if request.endpoint == 'admin_check_update' %}active{% endif %}">
-                <i class="fas fa-sync-alt w-5"></i>检查更新
-            </a>
-            {% endif %}
-        </nav>
     </aside>
 
     <main data-aos="fade-up" class="flex-1 min-w-0">

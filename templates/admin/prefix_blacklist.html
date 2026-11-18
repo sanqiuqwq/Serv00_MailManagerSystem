@@ -3,18 +3,25 @@
 {% block title %}前缀黑名单 - {{ site_settings.site_name }}{% endblock %}
 
 {% block admin_content %}
-<div class="glass-card rounded-3xl p-8 mb-6">
-    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-        <i class="fas fa-ban text-rose-600"></i>前缀黑名单
-    </h1>
-    <p class="text-slate-600">阻止包含特定前缀的邮箱注册</p>
+<div class="glass-card card-line rounded-3xl p-6 md:p-7 mb-6">
+    <div class="flex items-center gap-3.5">
+        <span class="icon-tile !w-11 !h-11 !rounded-xl bg-gradient-to-br from-rose-500 to-pink-600">
+            <i class="fas fa-ban"></i>
+        </span>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">前缀黑名单</h1>
+            <p class="text-xs text-slate-500 mt-0.5">阻止包含特定前缀的邮箱注册</p>
+        </div>
+    </div>
 </div>
 
-<div data-aos="fade-up" class="glass-card rounded-3xl p-8 mb-6">
-    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-        <i class="fas fa-plus-circle text-emerald-600"></i>添加黑名单前缀
+<div data-aos="fade-up" class="glass-card rounded-3xl p-6 md:p-7 mb-6">
+    <h2 class="section-title mb-4">
+        <span class="icon-tile !w-8 !h-8 !rounded-lg bg-emerald-500/15 border-emerald-400/25 text-emerald-300 text-xs"><i class="fas fa-plus"></i></span>
+        添加黑名单前缀
     </h2>
     <form method="POST" action="{{ url_for('admin_add_prefix_blacklist') }}" class="flex flex-col md:flex-row gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="text" class="form-input flex-1" name="prefix" placeholder="输入要禁止的前缀（例如: system, report, admin）" required>
         <button type="submit" class="btn-success">
             <i class="fas fa-plus"></i>添加
@@ -23,10 +30,10 @@
 </div>
 
 <div class="alert-info mb-6 text-sm">
-    <i class="fas fa-info-circle mr-2"></i>说明：禁止的前缀会阻止包含该前缀的邮箱注册。例如：添加 "system" 会阻止 "system@xxx.com"、"system123@xxx.com" 等。
+    <i class="fas fa-circle-info mr-2"></i>说明：禁止的前缀会阻止包含该前缀的邮箱注册。例如：添加 "system" 会阻止 "system@xxx.com"、"system123@xxx.com" 等。
 </div>
 
-<div data-aos="fade-up" class="glass-card rounded-3xl p-6 overflow-x-auto">
+<div data-aos="fade-up" class="glass-card rounded-3xl p-2 md:p-4 overflow-x-auto">
     <table class="data-table min-w-full">
         <thead>
             <tr>
@@ -38,17 +45,20 @@
         <tbody>
             {% for item in blacklist %}
             <tr>
-                <td><code class="text-sm text-rose-600 font-bold">{{ item.prefix }}</code></td>
-                <td class="text-sm text-slate-600">{{ item.created_at.strftime('%Y-%m-%d') }}</td>
+                <td><code class="text-sm text-rose-300 font-semibold font-mono">{{ item.prefix }}</code></td>
+                <td class="text-xs text-slate-500">{{ item.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
-                    <a href="{{ url_for('admin_delete_prefix_blacklist', item_id=item.id) }}" class="btn-danger btn-sm" onclick="return confirm('确定要删除这个前缀吗？')">
-                        <i class="fas fa-trash"></i>删除
-                    </a>
+                    <form method="POST" action="{{ url_for('admin_delete_prefix_blacklist', item_id=item.id) }}" class="contents" onsubmit="return confirm('确定要删除这个前缀吗？')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-danger btn-sm">
+                            <i class="fas fa-trash"></i>删除
+                        </button>
+                    </form>
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="3" class="text-center text-slate-500 py-8">暂无黑名单前缀</td>
+                <td colspan="3" class="text-center text-slate-500 py-10 text-sm">暂无黑名单前缀</td>
             </tr>
             {% endfor %}
         </tbody>

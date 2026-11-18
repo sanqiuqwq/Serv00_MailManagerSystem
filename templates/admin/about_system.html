@@ -1,45 +1,55 @@
 {% extends "admin/base.html" %}
 
 {% block admin_content %}
-<div class="glass-card rounded-3xl p-8 mb-6">
-    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-        <i class="fas fa-info-circle text-indigo-600"></i>关于系统
-    </h1>
-    <p class="text-slate-600">系统信息与开发人员</p>
+<div class="glass-card card-line rounded-3xl p-6 md:p-7 mb-6">
+    <div class="flex items-center gap-3.5">
+        <span class="icon-tile !w-11 !h-11 !rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600">
+            <i class="fas fa-circle-info"></i>
+        </span>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">关于系统</h1>
+            <p class="text-xs text-slate-500 mt-0.5">系统信息与开发人员</p>
+        </div>
+    </div>
 </div>
 
-<div data-aos="fade-up" class="glass-card rounded-3xl p-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div>
-            <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <i class="fas fa-server text-indigo-500"></i>系统信息
+<div data-aos="fade-up" class="glass-card rounded-3xl p-6 md:p-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="tile p-5">
+            <h2 class="section-title mb-4">
+                <span class="icon-tile !w-8 !h-8 !rounded-lg bg-indigo-500/15 border-indigo-400/25 text-indigo-300 text-xs"><i class="fas fa-server"></i></span>
+                系统信息
             </h2>
-            <p class="mb-2"><strong>系统名称：</strong>Serv00_邮箱注册/管理系统</p>
-            <p class="mb-2"><strong>当前版本：</strong>{{ system_version }}</p>
-            <p><strong>开源仓库：</strong>
-                <a href="https://github.com/sanqiuqwq/Serv00_MailManagerSystem" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">
-                    <i class="fab fa-github mr-1"></i>GitHub
-                </a>
-            </p>
+            <div class="space-y-2.5 text-sm text-slate-400">
+                <p><span class="text-slate-500">系统名称：</span><span class="text-slate-200">Serv00 邮箱注册 / 管理系统</span></p>
+                <p><span class="text-slate-500">当前版本：</span><span class="text-slate-200 font-mono">{{ system_version }}</span></p>
+                <p><span class="text-slate-500">开源仓库：</span>
+                    <a href="https://github.com/sanqiuqwq/Serv00_MailManagerSystem" target="_blank" class="text-indigo-300 hover:text-white font-medium transition">
+                        <i class="fab fa-github mr-1"></i>GitHub
+                    </a>
+                </p>
+            </div>
         </div>
-        <div>
-            <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <i class="fas fa-user-circle text-indigo-500"></i>开发人员
+
+        <div class="tile p-5">
+            <h2 class="section-title mb-4">
+                <span class="icon-tile !w-8 !h-8 !rounded-lg bg-violet-500/15 border-violet-400/25 text-violet-300 text-xs"><i class="fas fa-user"></i></span>
+                开发人员
             </h2>
-            <div class="bg-white/50 rounded-2xl p-5">
-                <p class="mb-2"><strong>名称：</strong>nnn</p>
-                <p class="mb-2"><strong>Telegram：</strong>
-                    <a href="https://t.me/qwqtop" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">
+            <div class="space-y-2.5 text-sm text-slate-400">
+                <p><span class="text-slate-500">名称：</span><span class="text-slate-200">nnn</span></p>
+                <p><span class="text-slate-500">Telegram：</span>
+                    <a href="https://t.me/qwqtop" target="_blank" class="text-indigo-300 hover:text-white font-medium transition">
                         <i class="fab fa-telegram mr-1"></i>@qwqtop
                     </a>
                 </p>
-                <p class="mb-2"><strong>NodeLoc：</strong>
-                    <a href="https://www.nodeloc.com/u/sanqi3737" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                <p><span class="text-slate-500">NodeLoc：</span>
+                    <a href="https://www.nodeloc.com/u/sanqi3737" target="_blank" class="text-indigo-300 hover:text-white font-medium transition">
                         <i class="fa fa-globe mr-1"></i>sanqi3737
                     </a>
                 </p>
-                <p><strong>GitHub：</strong>
-                    <a href="https://github.com/sanqiuqwq" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                <p><span class="text-slate-500">GitHub：</span>
+                    <a href="https://github.com/sanqiuqwq" target="_blank" class="text-indigo-300 hover:text-white font-medium transition">
                         <i class="fab fa-github mr-1"></i>sanqiuqwq
                     </a>
                 </p>
@@ -48,8 +58,7 @@
     </div>
 
     <div class="alert-info">
-        <i class="fas fa-info-circle mr-2"></i><strong>第三方库声明：</strong>本项目使用了 Tailwind CSS、FontAwesome、AOS 等开源项目。
+        <i class="fas fa-circle-info mr-2"></i><strong>第三方库声明：</strong>本项目使用了 Tailwind CSS、FontAwesome、AOS 等开源项目。
     </div>
 </div>
 {% endblock %}
-

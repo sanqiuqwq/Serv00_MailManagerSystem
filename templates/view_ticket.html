@@ -4,58 +4,69 @@
 
 {% block content %}
 <div data-aos="fade-up">
-    <div class="glass-card rounded-3xl p-6 mb-6">
+    <div class="glass-card card-line rounded-3xl p-6 mb-6">
         <div class="flex items-start justify-between gap-4 flex-wrap">
             <div class="flex items-start gap-4">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl shrink-0">
-                    <i class="fas fa-ticket-alt"></i>
-                </div>
+                <span class="icon-tile !w-11 !h-11 !rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600">
+                    <i class="fas fa-ticket"></i>
+                </span>
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-800 mb-1">{{ ticket.title }}</h1>
-                    <p class="text-sm text-slate-600">
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white mb-1">{{ ticket.title }}</h1>
+                    <p class="text-xs text-slate-500">
+                        <span class="font-mono">#{{ ticket.id }}</span>
+                        <span class="mx-1.5 text-slate-600">·</span>
                         <i class="far fa-clock mr-1"></i>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}
                         {% if current_user.is_admin %}
-                        | <i class="fas fa-user mr-1"></i>{{ ticket.user.username }}
+                        <span class="mx-1.5 text-slate-600">·</span>
+                        <i class="fas fa-user mr-1"></i>{{ ticket.user.username }}
                         {% endif %}
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-2.5 flex-wrap">
                 {% if ticket.status == 'open' %}
-                <span class="badge-success"><i class="fas fa-circle text-xs mr-1"></i>进行中</span>
-                <a href="{{ url_for('close_ticket', ticket_id=ticket.id) }}" class="btn-danger btn-sm">
-                    <i class="fas fa-times"></i>关闭工单
-                </a>
+                <span class="badge-success"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>进行中</span>
+                <form method="POST" action="{{ url_for('close_ticket', ticket_id=ticket.id) }}" class="contents">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-danger btn-sm">
+                        <i class="fas fa-xmark"></i>关闭工单
+                    </button>
+                </form>
                 {% else %}
-                <span class="badge-secondary"><i class="fas fa-check-circle text-xs mr-1"></i>已关闭</span>
-                <a href="{{ url_for('open_ticket', ticket_id=ticket.id) }}" class="btn-success btn-sm">
-                    <i class="fas fa-redo"></i>重新打开
-                </a>
+                <span class="badge-secondary"><i class="fas fa-check"></i>已关闭</span>
+                <form method="POST" action="{{ url_for('open_ticket', ticket_id=ticket.id) }}" class="contents">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-success btn-sm">
+                        <i class="fas fa-redo"></i>重新打开
+                    </button>
+                </form>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <div data-aos="fade-up" class="glass-card rounded-3xl p-8 mb-6">
-        <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <i class="fas fa-comments text-indigo-600"></i>对话记录
-        </h2>
+    <div data-aos="fade-up" class="glass-card rounded-3xl p-6 md:p-8 mb-6">
+        <div class="section-title mb-6">
+            <span class="icon-tile !w-9 !h-9 !rounded-lg bg-white/5 border-white/10 text-indigo-300 text-sm"><i class="fas fa-comments"></i></span>
+            对话记录
+            <span class="badge-secondary ml-auto">{{ ticket.replies|length }} 条</span>
+        </div>
         <div class="space-y-4">
             {% for reply in ticket.replies %}
-            <div class="rounded-2xl p-5 {% if reply.is_admin %}bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200{% else %}bg-white/70 border border-white/80{% endif %}">
+            <div class="rounded-2xl p-4 md:p-5 border {% if reply.is_admin %}bg-cyan-400/[0.05] border-cyan-400/20{% else %}bg-white/[0.03] border-white/10{% endif %}">
                 <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full {% if reply.is_admin %}bg-gradient-to-br from-cyan-500 to-blue-600{% else %}bg-gradient-to-br from-indigo-500 to-purple-600{% endif %} flex items-center justify-center text-white text-sm font-bold">
+                    <div class="flex items-center gap-2.5">
+                        <span class="icon-tile !w-7 !h-7 !rounded-full !text-[0.65rem] !font-bold {% if reply.is_admin %}bg-gradient-to-br from-cyan-500 to-blue-600{% else %}bg-gradient-to-br from-indigo-500 to-violet-600{% endif %}">
                             {{ reply.user.username[0]|upper }}
-                        </div>
-                        <span class="font-bold text-slate-800">{{ reply.user.username }}</span>
+                        </span>
+                        <span class="font-semibold text-sm text-white">{{ reply.user.username }}</span>
                         {% if reply.is_admin %}
-                        <span class="badge-info text-xs">管理员</span>
+                        <span class="badge-info">管理员</span>
                         {% endif %}
                     </div>
-                    <span class="text-sm text-slate-500">{{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    <span class="text-xs text-slate-500">{{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
                 </div>
-                <div class="text-slate-700 leading-relaxed pl-10">
+                <div class="text-sm text-slate-300 leading-relaxed pl-9 break-words">
                     {{ reply.content|safe }}
                 </div>
             </div>
@@ -64,11 +75,13 @@
     </div>
 
     {% if ticket.status == 'open' %}
-    <div data-aos="fade-up" class="glass-card rounded-3xl p-8">
-        <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <i class="fas fa-reply text-emerald-600"></i>回复
-        </h2>
+    <div data-aos="fade-up" class="glass-card card-line rounded-3xl p-6 md:p-8">
+        <div class="section-title mb-5">
+            <span class="icon-tile !w-9 !h-9 !rounded-lg bg-emerald-500/15 border-emerald-400/25 text-emerald-300 text-sm"><i class="fas fa-reply"></i></span>
+            回复
+        </div>
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <textarea class="form-textarea mb-4" name="content" rows="5" placeholder="输入你的回复内容..." required></textarea>
             <button type="submit" class="btn-primary">
                 <i class="fas fa-paper-plane"></i>发送回复

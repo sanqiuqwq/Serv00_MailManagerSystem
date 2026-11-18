@@ -2,19 +2,23 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
+from flask_wtf import CSRFProtect
+from flask_wtf.csrf import CSRFError
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import requests
-from bs4 import BeautifulSoup
 import os
 from dotenv import load_dotenv
 import secrets
 import string
+import threading
+import time
+from urllib.parse import quote
 
 load_dotenv()
 
 # 系统版本号
-SYSTEM_VERSION = '2.0.0'
+SYSTEM_VERSION = '3.0.0'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', secrets.token_hex(24))
@@ -43,6 +47,19 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = '请先登录'
+
+# CSRF 保护（令牌随会话有效）
+app.config['WTF_CSRF_TIME_LIMIT'] = None
+csrf = CSRFProtect(app)
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    flash('安全校验失败或表单已过期，请刷新页面后重试', 'danger')
+    referrer = request.referrer
+    if referrer and referrer.startswith(request.host_url):
+        return redirect(referrer)
+    return redirect(url_for('index'))
 
 # serv00配置
 SERV00_USERNAME = os.getenv('SERV00_USERNAME')
@@ -148,6 +165,8 @@ class User(UserMixin, db.Model):
     extra_emails = db.Column(db.Integer, default=0)
     temp_extra_emails = db.Column(db.Integer, default=0)
     temp_expires_at = db.Column(db.DateTime)
+    is_permanent = db.Column(db.Boolean, default=False)
+    pro_expires_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     emails = db.relationship('RegisteredEmail', backref='owner', lazy=True)
     verification_tokens = db.relationship('VerificationToken', backref='user', lazy=True)
@@ -373,175 +392,115 @@ def send_email(subject, recipients, body):
     mail.send(msg)
 
 
-def serv00_login_and_create_email(prefix, domain, password):
+def serv00_api_error(response):
+    try:
+        data = response.json()
+    except ValueError:
+        return f"HTTP {response.status_code}"
+
+    if isinstance(data, dict):
+        if isinstance(data.get('detail'), str) and data['detail']:
+            return data['detail']
+        if isinstance(data.get('msg'), str) and data['msg']:
+            return data['msg']
+        for value in data.values():
+            if isinstance(value, list) and value:
+                return str(value[0])
+            if isinstance(value, str) and value:
+                return value
+
+    return f"HTTP {response.status_code}"
+
+
+def serv00_api_login():
     session_req = requests.Session()
     user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
-    login_url = f"https://{SERV00_PANEL}/login/?next=/mail/add"
-    email_creation_url = f"https://{SERV00_PANEL}/mail/add"
+    session_req.headers.update({
+        "User-Agent": user_agent,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Referer": f"https://{SERV00_PANEL}/next/login"
+    })
 
     try:
-        login_page = session_req.get(login_url, headers={"User-Agent": user_agent})
-        soup = BeautifulSoup(login_page.content, 'html.parser')
-        csrf_token = soup.find('input', {'name': 'csrfmiddlewaretoken'})['value']
-
-        login_data = {
+        # 访问登录页以获取 csrftoken / 会话 cookie
+        session_req.get(f"https://{SERV00_PANEL}/login/", timeout=15)
+        login_response = session_req.post(f"https://{SERV00_PANEL}/api/v3/auth", json={
             'username': SERV00_USERNAME,
-            'password': SERV00_PASSWORD,
-            'csrfmiddlewaretoken': csrf_token,
-            'next': '/mail/add'
-        }
-        login_response = session_req.post(login_url, data=login_data, headers={
-            "User-Agent": user_agent,
-            "Referer": login_url,
-            "Content-Type": "application/x-www-form-urlencoded"
-        })
-
-        if "Dodaj nowy adres e-mail" in login_response.text or "/mail/add" in login_response.url:
-            mail_add_page = session_req.get(email_creation_url, headers={"User-Agent": user_agent})
-            soup = BeautifulSoup(mail_add_page.content, 'html.parser')
-            new_csrf_token = soup.find('input', {'name': 'csrfmiddlewaretoken'})['value']
-
-            full_email = f"{prefix}{domain}"
-            email_data = {
-                'csrfmiddlewaretoken': new_csrf_token,
-                'email': full_email,
-                'password1': password,
-                'password2': password
-            }
-
-            email_creation_response = session_req.post(email_creation_url, data=email_data, headers={
-                "User-Agent": user_agent,
-                "Referer": email_creation_url,
-                "Content-Type": "application/x-www-form-urlencoded"
-            })
-
-            if email_creation_response.status_code == 200:
-                return {"success": True, "email": full_email}
-            else:
-                raise Exception("邮箱创建失败")
-        else:
-            raise Exception("登录失败")
+            'password': SERV00_PASSWORD
+        }, timeout=20)
     except Exception as e:
-        return {"success": False, "message": str(e)}
+        return None, f"连接 Serv00 面板失败: {e}"
+
+    if login_response.status_code != 200:
+        return None, f"登录失败: {serv00_api_error(login_response)}"
+
+    return session_req, None
+
+
+def serv00_login_and_create_email(prefix, domain, password):
+    full_email = f"{prefix}{domain}"
+
+    session_req, error = serv00_api_login()
+    if error:
+        return {"success": False, "message": error}
+
+    try:
+        email_creation_response = session_req.post(
+            f"https://{SERV00_PANEL}/api/v3/mail/mailbox",
+            json={'mailbox': full_email, 'password': password},
+            headers={"X-CSRFToken": session_req.cookies.get('csrftoken', '')},
+            timeout=20
+        )
+    except Exception as e:
+        return {"success": False, "message": f"邮箱创建失败: {e}"}
+
+    if 200 <= email_creation_response.status_code < 300:
+        return {"success": True, "email": full_email}
+
+    return {"success": False, "message": f"邮箱创建失败: {serv00_api_error(email_creation_response)}"}
 
 
 def serv00_reset_password(email_address, new_password):
-    username_part, domain_part = email_address.split('@', 1)
-    
-    session_req = requests.Session()
-    user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
-    login_url = f"https://{SERV00_PANEL}/login/?next=/mail"
-    mail_list_url = f"https://{SERV00_PANEL}/mail"
+    session_req, error = serv00_api_login()
+    if error:
+        return {"success": False, "message": error}
 
     try:
-        login_page = session_req.get(login_url, headers={"User-Agent": user_agent})
-        soup = BeautifulSoup(login_page.content, 'html.parser')
-        csrf_token = soup.find('input', {'name': 'csrfmiddlewaretoken'})['value']
-
-        login_data = {
-            'username': SERV00_USERNAME,
-            'password': SERV00_PASSWORD,
-            'csrfmiddlewaretoken': csrf_token,
-            'next': '/mail'
-        }
-        login_response = session_req.post(login_url, data=login_data, headers={
-            "User-Agent": user_agent,
-            "Referer": login_url,
-            "Content-Type": "application/x-www-form-urlencoded"
-        })
-
-        domain_page = session_req.get(mail_list_url, headers={"User-Agent": user_agent})
-        soup = BeautifulSoup(domain_page.content, 'html.parser')
-
-        domain_row = None
-        all_rows = soup.find_all('tr')
-        
-        for row in all_rows:
-            row_text = str(row)
-            if domain_part in row_text:
-                domain_row = row
-                break
-
-        if not domain_row:
-            return {"success": False, "message": "未找到该域名"}
-
-        domain_link = domain_row.find('a', href=True)
-        if not domain_link:
-            return {"success": False, "message": "未找到域名链接"}
-
-        domain_mail_url = f"https://{SERV00_PANEL}{domain_link['href']}"
-        mail_page = session_req.get(domain_mail_url, headers={"User-Agent": user_agent})
-        soup = BeautifulSoup(mail_page.content, 'html.parser')
-
-        email_row = None
-        all_email_rows = soup.find_all('tr')
-        
-        for row in all_email_rows:
-            row_text = str(row)
-            if username_part in row_text or email_address in row_text:
-                email_row = row
-                break
-
-        if not email_row:
-            return {"success": False, "message": "未找到该邮箱"}
-
-        password_modal = soup.find('div', id='password_modal_1')
-        if not password_modal:
-            return {"success": False, "message": "未找到密码模态框"}
-        
-        password_form = password_modal.find('form')
-        if not password_form:
-            return {"success": False, "message": "未找到密码表单"}
-
-        form_action = password_form.get('action', '')
-
-        csrf_input = password_form.find('input', {'name': 'csrfmiddlewaretoken'})
-        if not csrf_input:
-            return {"success": False, "message": "未找到 CSRF token"}
-        csrf_token = csrf_input['value']
-        
-        email_input = password_form.find('input', {'name': 'pass_email'})
-        if not email_input:
-            return {"success": False, "message": "未找到邮箱输入框"}
-        
-        password_url = f"https://{SERV00_PANEL}{form_action}"
-        
-        password_data = {
-            'csrfmiddlewaretoken': csrf_token,
-            'pass_email': email_address,
-            'password1': new_password,
-            'password2': new_password
-        }
-
-        password_response = session_req.post(password_url, data=password_data, headers={
-            "User-Agent": user_agent,
-            "Referer": domain_mail_url,
-            "Content-Type": "application/x-www-form-urlencoded"
-        })
-        
-        if "Zmiana hasła zakończona sukcesem" in password_response.text or "Operacja wykonana prawidłowo" in password_response.text:
-            return {"success": True}
-        else:
-            error_messages = [
-                "Hasło jest za krótkie",
-                "Hasło musi zawierać co najmniej jedną cyfrę",
-                "Hasło musi zawierać co najmniej jedną małą literę",
-                "Hasło musi zawierać co najmniej jedną dużą literę",
-                "Błąd",
-                "error"
-            ]
-            
-            found_errors = []
-            for err in error_messages:
-                if err.lower() in password_response.text.lower():
-                    found_errors.append(err)
-            
-            if found_errors:
-                return {"success": False, "message": f"密码重置失败"}
-            else:
-                return {"success": False, "message": "密码重置失败"}
+        password_response = session_req.patch(
+            f"https://{SERV00_PANEL}/api/v3/mail/mailbox/{quote(email_address, safe='')}",
+            json={'password': new_password},
+            headers={"X-CSRFToken": session_req.cookies.get('csrftoken', '')},
+            timeout=20
+        )
     except Exception as e:
-        return {"success": False, "message": "密码重置失败"}
+        return {"success": False, "message": f"密码重置失败: {e}"}
+
+    if 200 <= password_response.status_code < 300:
+        return {"success": True}
+
+    return {"success": False, "message": f"密码重置失败: {serv00_api_error(password_response)}"}
+
+
+def serv00_delete_email(email_address):
+    session_req, error = serv00_api_login()
+    if error:
+        return {"success": False, "message": error}
+
+    try:
+        delete_response = session_req.delete(
+            f"https://{SERV00_PANEL}/api/v3/mail/mailbox/{quote(email_address, safe='')}",
+            headers={"X-CSRFToken": session_req.cookies.get('csrftoken', '')},
+            timeout=20
+        )
+    except Exception as e:
+        return {"success": False, "message": f"删除邮箱失败: {e}"}
+
+    # 404 表示面板上已不存在该邮箱，视为删除成功
+    if 200 <= delete_response.status_code < 300 or delete_response.status_code == 404:
+        return {"success": True}
+
+    return {"success": False, "message": f"删除邮箱失败: {serv00_api_error(delete_response)}"}
 
 
 # 路由
@@ -588,7 +547,7 @@ def auth_nodeloc_bind():
     return redirect(auth_url)
 
 
-@app.route('/auth/nodeloc/unbind')
+@app.route('/auth/nodeloc/unbind', methods=['POST'])
 @login_required
 def auth_nodeloc_unbind():
     if current_user.nodeloc_id:
@@ -792,7 +751,7 @@ def auth_telegram_bind():
     return redirect(url_for('dashboard'))
 
 
-@app.route('/auth/telegram/unbind')
+@app.route('/auth/telegram/unbind', methods=['POST'])
 @login_required
 def auth_telegram_unbind():
     if current_user.telegram_id:
@@ -938,7 +897,7 @@ def auth_google_callback():
         return redirect(url_for('login'))
 
 
-@app.route('/auth/google/unbind')
+@app.route('/auth/google/unbind', methods=['POST'])
 @login_required
 def auth_google_unbind():
     if current_user.google_id:
@@ -1080,7 +1039,7 @@ def auth_linuxdo_callback():
         return redirect(url_for('login'))
 
 
-@app.route('/auth/linuxdo/unbind')
+@app.route('/auth/linuxdo/unbind', methods=['POST'])
 @login_required
 def auth_linuxdo_unbind():
     if current_user.linuxdo_id:
@@ -1321,7 +1280,7 @@ def reset_password(token):
     return render_template('reset_password.html')
 
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()
@@ -1420,7 +1379,7 @@ def view_ticket(ticket_id):
     return render_template('view_ticket.html', ticket=ticket)
 
 
-@app.route('/tickets/<int:ticket_id>/close')
+@app.route('/tickets/<int:ticket_id>/close', methods=['POST'])
 @login_required
 def close_ticket(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
@@ -1436,7 +1395,7 @@ def close_ticket(ticket_id):
     return redirect(url_for('tickets'))
 
 
-@app.route('/tickets/<int:ticket_id>/open')
+@app.route('/tickets/<int:ticket_id>/open', methods=['POST'])
 @login_required
 def open_ticket(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
@@ -1579,6 +1538,31 @@ def reset_email_password(email_id):
         flash('邮箱密码重置成功！', 'success')
     else:
         flash(f'密码重置失败: {result["message"]}', 'danger')
+
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/delete-email/<int:email_id>', methods=['POST'])
+@login_required
+def delete_email(email_id):
+    email = RegisteredEmail.query.get_or_404(email_id)
+    if email.user_id != current_user.id:
+        flash('无权操作此邮箱', 'danger')
+        return redirect(url_for('dashboard'))
+
+    if email.is_disabled:
+        flash('该邮箱已被禁用', 'danger')
+        return redirect(url_for('dashboard'))
+
+    result = serv00_delete_email(email.email_address)
+    if not result['success']:
+        flash(f'邮箱删除失败: {result["message"]}', 'danger')
+        return redirect(url_for('dashboard'))
+
+    email_address = email.email_address
+    db.session.delete(email)
+    db.session.commit()
+    flash(f'邮箱 {email_address} 已删除！', 'success')
 
     return redirect(url_for('dashboard'))
 
@@ -1758,6 +1742,41 @@ def admin_cleanup_all():
     return redirect(url_for('admin_dashboard'))
 
 
+AUTO_CLEANUP_ENABLED = os.getenv('AUTO_CLEANUP_ENABLED', 'true').lower() == 'true'
+AUTO_CLEANUP_INTERVAL = 24 * 60 * 60
+_last_auto_cleanup_at = 0
+_auto_cleanup_lock = threading.Lock()
+
+
+def run_auto_cleanup():
+    global _last_auto_cleanup_at
+    if not AUTO_CLEANUP_ENABLED:
+        return
+
+    now = time.time()
+    if now - _last_auto_cleanup_at < AUTO_CLEANUP_INTERVAL:
+        return
+
+    if not _auto_cleanup_lock.acquire(blocking=False):
+        return
+
+    try:
+        _last_auto_cleanup_at = now
+        cleanup_expired_tokens()
+        cleanup_closed_tickets()
+        cleanup_unverified_users()
+    except Exception as e:
+        db.session.rollback()
+        print(f"自动清理数据失败: {e}")
+    finally:
+        _auto_cleanup_lock.release()
+
+
+@app.before_request
+def auto_cleanup_before_request():
+    run_auto_cleanup()
+
+
 @app.route('/admin/users')
 @login_required
 def admin_users():
@@ -1777,7 +1796,7 @@ def admin_users():
     return render_template('admin/users.html', users=users, search_query=search_query)
 
 
-@app.route('/admin/users/ban/<int:user_id>')
+@app.route('/admin/users/ban/<int:user_id>', methods=['POST'])
 @login_required
 def admin_ban_user(user_id):
     if not current_user.can_access_admin():
@@ -1795,7 +1814,7 @@ def admin_ban_user(user_id):
     return redirect(url_for('admin_users'))
 
 
-@app.route('/admin/users/unban/<int:user_id>')
+@app.route('/admin/users/unban/<int:user_id>', methods=['POST'])
 @login_required
 def admin_unban_user(user_id):
     if not current_user.can_access_admin():
@@ -1810,7 +1829,7 @@ def admin_unban_user(user_id):
     return redirect(url_for('admin_users'))
 
 
-@app.route('/admin/users/delete/<int:user_id>')
+@app.route('/admin/users/delete/<int:user_id>', methods=['POST'])
 @login_required
 def admin_delete_user(user_id):
     if not current_user.can_access_admin():
@@ -1860,7 +1879,7 @@ def admin_add_domain():
     return redirect(url_for('admin_domains'))
 
 
-@app.route('/admin/domains/toggle/<int:domain_id>')
+@app.route('/admin/domains/toggle/<int:domain_id>', methods=['POST'])
 @login_required
 def admin_toggle_domain(domain_id):
     if not current_user.is_owner():
@@ -1875,7 +1894,7 @@ def admin_toggle_domain(domain_id):
     return redirect(url_for('admin_domains'))
 
 
-@app.route('/admin/domains/delete/<int:domain_id>')
+@app.route('/admin/domains/delete/<int:domain_id>', methods=['POST'])
 @login_required
 def admin_delete_domain(domain_id):
     if not current_user.is_owner():
@@ -1905,7 +1924,7 @@ def admin_emails():
     return render_template('admin/emails.html', emails=emails)
 
 
-@app.route('/admin/emails/disable/<int:email_id>')
+@app.route('/admin/emails/disable/<int:email_id>', methods=['POST'])
 @login_required
 def admin_disable_email(email_id):
     if not current_user.is_owner():
@@ -1923,7 +1942,7 @@ def admin_disable_email(email_id):
     return redirect(url_for('admin_emails'))
 
 
-@app.route('/admin/emails/enable/<int:email_id>')
+@app.route('/admin/emails/enable/<int:email_id>', methods=['POST'])
 @login_required
 def admin_enable_email(email_id):
     if not current_user.is_owner():
@@ -1941,7 +1960,7 @@ def admin_enable_email(email_id):
     return redirect(url_for('admin_emails'))
 
 
-@app.route('/admin/emails/delete/<int:email_id>')
+@app.route('/admin/emails/delete/<int:email_id>', methods=['POST'])
 @login_required
 def admin_delete_email(email_id):
     if not current_user.is_owner():
@@ -1952,9 +1971,16 @@ def admin_delete_email(email_id):
     if not current_user.is_owner() and email.owner.role == 'owner':
         flash('无权操作此邮箱', 'danger')
         return redirect(url_for('admin_emails'))
+
+    result = serv00_delete_email(email.email_address)
+    if not result['success']:
+        flash(f'删除 Serv00 邮箱失败: {result["message"]}', 'danger')
+        return redirect(url_for('admin_emails'))
+
+    email_address = email.email_address
     db.session.delete(email)
     db.session.commit()
-    flash('邮箱已删除', 'success')
+    flash(f'邮箱 {email_address} 已删除', 'success')
 
     return redirect(url_for('admin_emails'))
 
@@ -1987,7 +2013,7 @@ def admin_add_announcement():
     return redirect(url_for('admin_announcements'))
 
 
-@app.route('/admin/announcements/toggle/<int:announcement_id>')
+@app.route('/admin/announcements/toggle/<int:announcement_id>', methods=['POST'])
 @login_required
 def admin_toggle_announcement(announcement_id):
     if not current_user.can_access_admin():
@@ -2002,7 +2028,7 @@ def admin_toggle_announcement(announcement_id):
     return redirect(url_for('admin_announcements'))
 
 
-@app.route('/admin/announcements/delete/<int:announcement_id>')
+@app.route('/admin/announcements/delete/<int:announcement_id>', methods=['POST'])
 @login_required
 def admin_delete_announcement(announcement_id):
     if not current_user.is_owner():
@@ -2139,6 +2165,8 @@ def admin_change_role(user_id):
     site_settings = SiteSettings.query.first()
     if new_role == 'user':
         user.max_emails = site_settings.default_user_max_emails if site_settings else 2
+        user.is_permanent = False
+        user.pro_expires_at = None
     elif new_role == 'pro':
         user.max_emails = site_settings.default_pro_max_emails if site_settings else 5
         duration = request.form.get('duration')
@@ -2257,7 +2285,7 @@ def admin_create_code():
     return render_template('admin/create_code.html')
 
 
-@app.route('/admin/codes/delete/<int:code_id>')
+@app.route('/admin/codes/delete/<int:code_id>', methods=['POST'])
 @login_required
 def admin_delete_code(code_id):
     if not current_user.can_access_admin():
@@ -2271,7 +2299,7 @@ def admin_delete_code(code_id):
     return redirect(url_for('admin_codes'))
 
 
-@app.route('/admin/codes/cleanup')
+@app.route('/admin/codes/cleanup', methods=['POST'])
 @login_required
 def admin_cleanup_codes():
     if not current_user.can_access_admin():
@@ -2341,7 +2369,7 @@ def admin_add_prefix_blacklist():
     return redirect(url_for('admin_prefix_blacklist'))
 
 
-@app.route('/admin/prefix-blacklist/delete/<int:item_id>')
+@app.route('/admin/prefix-blacklist/delete/<int:item_id>', methods=['POST'])
 @login_required
 def admin_delete_prefix_blacklist(item_id):
     if not current_user.is_owner():
@@ -2395,7 +2423,7 @@ def admin_add_email_suffix():
     return redirect(url_for('admin_email_suffixes'))
 
 
-@app.route('/admin/email-suffixes/delete/<int:item_id>')
+@app.route('/admin/email-suffixes/delete/<int:item_id>', methods=['POST'])
 @login_required
 def admin_delete_email_suffix(item_id):
     if not current_user.is_owner():
@@ -2668,4 +2696,5 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(debug=debug_mode)

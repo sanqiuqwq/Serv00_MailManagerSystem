@@ -3,14 +3,19 @@
 {% block title %}邮箱管理 - {{ site_settings.site_name }}{% endblock %}
 
 {% block admin_content %}
-<div class="glass-card rounded-3xl p-8 mb-6">
-    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-        <i class="fas fa-envelope text-emerald-600"></i>邮箱管理
-    </h1>
-    <p class="text-slate-600">管理所有已创建的邮箱</p>
+<div class="glass-card card-line rounded-3xl p-6 md:p-7 mb-6">
+    <div class="flex items-center gap-3.5">
+        <span class="icon-tile !w-11 !h-11 !rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
+            <i class="fas fa-envelope"></i>
+        </span>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">邮箱管理</h1>
+            <p class="text-xs text-slate-500 mt-0.5">管理所有已创建的邮箱</p>
+        </div>
+    </div>
 </div>
 
-<div data-aos="fade-up" class="glass-card rounded-3xl p-6 overflow-x-auto">
+<div data-aos="fade-up" class="glass-card rounded-3xl p-2 md:p-4 overflow-x-auto">
     <table class="data-table min-w-full">
         <thead>
             <tr>
@@ -25,9 +30,9 @@
         <tbody>
             {% for email in emails %}
             <tr>
-                <td class="font-mono text-sm">#{{ email.id }}</td>
-                <td class="font-mono font-bold text-slate-800">{{ email.email_address }}</td>
-                <td>{{ email.owner.username }}</td>
+                <td class="font-mono text-xs text-slate-500">#{{ email.id }}</td>
+                <td class="font-mono font-semibold text-white">{{ email.email_address }}</td>
+                <td class="text-sm">{{ email.owner.username }}</td>
                 <td>
                     {% if email.is_disabled %}
                     <span class="badge-danger">已禁用</span>
@@ -35,15 +40,24 @@
                     <span class="badge-success">正常</span>
                     {% endif %}
                 </td>
-                <td class="text-sm text-slate-600">{{ email.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="text-xs text-slate-500">{{ email.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-1.5">
                         {% if email.is_disabled %}
-                        <a href="{{ url_for('admin_enable_email', email_id=email.id) }}" class="btn-success btn-sm">启用</a>
+                        <form method="POST" action="{{ url_for('admin_enable_email', email_id=email.id) }}" class="contents">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-success btn-sm">启用</button>
+                        </form>
                         {% else %}
-                        <a href="{{ url_for('admin_disable_email', email_id=email.id) }}" class="btn-warning btn-sm">禁用</a>
+                        <form method="POST" action="{{ url_for('admin_disable_email', email_id=email.id) }}" class="contents">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-warning btn-sm">禁用</button>
+                        </form>
                         {% endif %}
-                        <a href="{{ url_for('admin_delete_email', email_id=email.id) }}" class="btn-danger btn-sm" onclick="return confirm('确定要删除此邮箱吗？')">删除</a>
+                        <form method="POST" action="{{ url_for('admin_delete_email', email_id=email.id) }}" class="contents" onsubmit="return confirm('确定要删除此邮箱吗？该操作会同时删除 Serv00 面板上的真实邮箱，且不可恢复。')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-danger btn-sm">删除</button>
+                        </form>
                     </div>
                 </td>
             </tr>

@@ -3,102 +3,127 @@
 {% block title %}首页 - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<section data-aos="fade-up" class="glass-card rounded-3xl p-8 md:p-16 mb-8 text-center relative overflow-hidden">
+<section data-aos="fade-up" class="hero-panel relative overflow-hidden rounded-[2rem] border px-6 py-16 md:py-24 mb-8 text-center">
+    <div class="hero-grid absolute inset-0 pointer-events-none"></div>
+    <div class="hero-glow absolute -top-24 left-1/2 -translate-x-1/2 w-[420px] h-[420px] rounded-full pointer-events-none"></div>
+
     <div class="relative z-10">
-        <div class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100/80 text-indigo-700 rounded-full text-sm font-medium mb-6">
-            <i class="fas fa-sparkles"></i>
-            <span>快速、安全、免费的邮箱服务</span>
+        <div class="eyebrow mb-6">
+            <span class="eyebrow-dot"></span>
+            <span>快速 · 安全 · 免费的邮箱服务</span>
         </div>
-        
-        <h1 class="text-4xl md:text-6xl font-extrabold mb-6">
+
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-[1.08]">
             <span class="gradient-text">欢迎来到</span><br>
-            <span class="text-slate-800">{{ site_settings.site_name }}</span>
+            <span class="text-white">{{ site_settings.site_name }}</span>
         </h1>
-        
-        <p class="text-lg md:text-xl text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+
+        <p class="text-base md:text-lg text-slate-400 mb-9 max-w-2xl mx-auto leading-relaxed">
             {{ site_settings.site_description }}
         </p>
 
-        <div class="flex flex-wrap items-center justify-center gap-4">
+        <div class="flex flex-wrap items-center justify-center gap-3">
             {% if not current_user.is_authenticated %}
-            <a href="{{ url_for('register') }}" class="btn-primary text-lg">
+            <a href="{{ url_for('register') }}" class="btn-primary text-base !px-6 !py-3">
                 <i class="fas fa-user-plus"></i>立即注册
             </a>
-            <a href="{{ url_for('login') }}" class="btn-ghost text-lg">
-                <i class="fas fa-sign-in-alt"></i>登录账户
+            <a href="{{ url_for('login') }}" class="btn-ghost text-base !px-6 !py-3">
+                <i class="fas fa-arrow-right-to-bracket"></i>登录账户
             </a>
             {% if site_settings.tg_group_url %}
-            <a href="{{ site_settings.tg_group_url }}" target="_blank" class="btn-info text-lg">
-                <i class="fab fa-telegram-plane"></i>加入TG群
+            <a href="{{ site_settings.tg_group_url }}" target="_blank" class="btn-info text-base !px-6 !py-3">
+                <i class="fab fa-telegram-plane"></i>加入 TG 群
             </a>
             {% endif %}
             {% else %}
-            <a href="{{ url_for('dashboard') }}" class="btn-primary text-lg">
-                <i class="fas fa-th-large"></i>进入控制台
+            <a href="{{ url_for('dashboard') }}" class="btn-primary text-base !px-6 !py-3">
+                <i class="fas fa-table-cells-large"></i>进入控制台
             </a>
             {% if site_settings.purchase_code_url %}
-            <a href="{{ site_settings.purchase_code_url }}" target="_blank" class="btn-success text-lg">
+            <a href="{{ site_settings.purchase_code_url }}" target="_blank" class="btn-success text-base !px-6 !py-3">
                 <i class="fas fa-shopping-cart"></i>购买卡密
             </a>
             {% endif %}
             {% if site_settings.tg_group_url %}
-            <a href="{{ site_settings.tg_group_url }}" target="_blank" class="btn-info text-lg">
-                <i class="fab fa-telegram-plane"></i>加入TG群
+            <a href="{{ site_settings.tg_group_url }}" target="_blank" class="btn-info text-base !px-6 !py-3">
+                <i class="fab fa-telegram-plane"></i>加入 TG 群
             </a>
             {% endif %}
             {% endif %}
         </div>
+
+        <div class="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-slate-500">
+            <span class="inline-flex items-center gap-2"><i class="fas fa-bolt text-indigo-400"></i>即时开通</span>
+            <span class="inline-flex items-center gap-2"><i class="fas fa-lock text-indigo-400"></i>独立密码</span>
+            <span class="inline-flex items-center gap-2"><i class="fas fa-server text-indigo-400"></i>SMTP / IMAP / POP3</span>
+            <span class="inline-flex items-center gap-2"><i class="fas fa-globe text-indigo-400"></i>多域名可选</span>
+        </div>
     </div>
 </section>
 
-<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div data-aos="fade-up" data-aos-delay="0" class="glass-card rounded-2xl p-6 text-center">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl">
+<section class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+    <div data-aos="fade-up" data-aos-delay="0" class="glass-card spotlight card-line tile-hover rounded-3xl p-6">
+        <div class="icon-tile mb-5 bg-gradient-to-br from-indigo-500 to-violet-600">
             <i class="fas fa-bolt"></i>
         </div>
-        <h3 class="text-lg font-bold text-slate-800 mb-2">极速开通</h3>
-        <p class="text-slate-600 text-sm">注册后立即创建邮箱，无需等待审核</p>
+        <h3 class="text-base font-semibold text-white mb-1.5">极速开通</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">注册后立即创建邮箱，无需等待人工审核。</p>
     </div>
-    
-    <div data-aos="fade-up" data-aos-delay="100" class="glass-card rounded-2xl p-6 text-center">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-2xl">
-            <i class="fas fa-lock"></i>
+
+    <div data-aos="fade-up" data-aos-delay="80" class="glass-card spotlight card-line tile-hover rounded-3xl p-6">
+        <div class="icon-tile mb-5 bg-gradient-to-br from-emerald-500 to-teal-600">
+            <i class="fas fa-shield-halved"></i>
         </div>
-        <h3 class="text-lg font-bold text-slate-800 mb-2">安全可靠</h3>
-        <p class="text-slate-600 text-sm">独立密码保护，支持 SMTP/IMAP/POP3</p>
+        <h3 class="text-base font-semibold text-white mb-1.5">安全可靠</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">独立密码保护，完整支持 SMTP / IMAP / POP3。</p>
     </div>
-    
-    <div data-aos="fade-up" data-aos-delay="200" class="glass-card rounded-2xl p-6 text-center">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white text-2xl">
+
+    <div data-aos="fade-up" data-aos-delay="160" class="glass-card spotlight card-line tile-hover rounded-3xl p-6">
+        <div class="icon-tile mb-5 bg-gradient-to-br from-fuchsia-500 to-rose-600">
             <i class="fas fa-infinity"></i>
         </div>
-        <h3 class="text-lg font-bold text-slate-800 mb-2">多域名选择</h3>
-        <p class="text-slate-600 text-sm">丰富的邮箱后缀，打造你的专属邮箱</p>
+        <h3 class="text-base font-semibold text-white mb-1.5">多域名选择</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">丰富的邮箱后缀，打造属于你的专属地址。</p>
     </div>
 </section>
 
 {% if announcements %}
-<section data-aos="fade-up" class="glass-card rounded-3xl p-8 mb-8">
-    <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white">
-            <i class="fas fa-bullhorn"></i>
+<section data-aos="fade-up" class="glass-card rounded-3xl p-6 md:p-8 mb-8">
+    <div class="flex items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3">
+            <span class="icon-tile bg-gradient-to-br from-cyan-500 to-blue-600">
+                <i class="fas fa-bullhorn"></i>
+            </span>
+            <div>
+                <h2 class="text-lg font-semibold text-white">最新公告</h2>
+                <p class="text-xs text-slate-500">系统动态与更新说明</p>
+            </div>
         </div>
-        <h2 class="text-2xl font-bold text-slate-800">最新公告</h2>
+        <span class="badge-info hidden sm:inline-flex">{{ announcements|length }} 条</span>
     </div>
-    
-    <div class="space-y-4">
+
+    <div class="space-y-3">
         {% for announcement in announcements %}
-        <div data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}" class="bg-white/60 rounded-2xl p-5 border-l-4 border-cyan-500 hover:shadow-lg transition-all">
-            <div class="flex items-start justify-between mb-2">
-                <h3 class="text-lg font-bold text-slate-800">{{ announcement.title }}</h3>
-                <span class="text-sm text-slate-500 whitespace-nowrap ml-4">
+        <article data-aos="fade-up" data-aos-delay="{{ loop.index * 40 }}"
+                 class="tile tile-hover relative overflow-hidden p-5 pl-6">
+            <span class="absolute left-0 top-4 bottom-4 w-[3px] rounded-full bg-gradient-to-b from-indigo-400 to-cyan-400"></span>
+            <div class="flex items-start justify-between gap-4 mb-1.5">
+                <h3 class="text-base font-semibold text-white">{{ announcement.title }}</h3>
+                <span class="text-xs text-slate-500 whitespace-nowrap shrink-0">
                     <i class="far fa-clock mr-1"></i>{{ announcement.created_at.strftime('%Y-%m-%d') }}
                 </span>
             </div>
-            <p class="text-slate-600 leading-relaxed">{{ announcement.content }}</p>
-        </div>
+            <p class="text-sm text-slate-400 leading-relaxed">{{ announcement.content }}</p>
+        </article>
         {% endfor %}
     </div>
 </section>
 {% endif %}
+
+<section data-aos="fade-up" class="glass-card card-line rounded-3xl p-8 text-center">
+    <p class="text-sm text-slate-400">
+        <i class="fas fa-circle-info text-indigo-400 mr-2"></i>
+        有任何问题？登录后前往 <a href="{{ url_for('tickets') }}" class="text-indigo-300 hover:text-white font-medium transition">工单中心</a> 联系管理员。
+    </p>
+</section>
 {% endblock %}

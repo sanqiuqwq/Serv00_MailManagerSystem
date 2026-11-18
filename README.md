@@ -2,7 +2,9 @@
 
 Demo：https://reg.nekoqwq.com/
 
-基于 serv00 的邮箱注册和管理系统，包含用户端和管理后台。
+基于 serv00 的邮箱注册和管理系统，包含用户端和管理后台。当前版本：**3.0.0**。
+
+界面已全面重做为 Magic UI 风格，并内置 **Material 3** 主题：两套主题 + 日间 / 夜间模式均可自由切换，偏好本地保存。
 
 **PS：程序AI写的，有点bug见谅(**
 
@@ -21,16 +23,18 @@ cp .env.example .env
 ```
 编辑 `.env` 文件，填入您的配置信息。
 
-4. 初始化数据库：
+3. 初始化数据库：
 ```bash
 python init_db.py
 ```
 这将创建所有数据表并初始化默认数据（包括Owner账户、前缀黑名单、邮箱后缀白名单等）。
 
-3. 运行项目：
+4. 运行项目：
 ```bash
 python app.py
 ```
+生产环境建议使用 `gunicorn` 等方式部署，并保持 `FLASK_DEBUG=false`。
+
 ## 更新
 
 1.备份旧版数据库(一定要备份！！！！！！！！)
@@ -73,19 +77,21 @@ python init_db.py update
 - 创建邮箱（前缀+域名选择）
 - 重置邮箱密码
 - 查看已注册的邮箱
+- 删除已注册的邮箱
 - 邮箱转移所有权（PUSH功能）
 - 卡密兑换（增加邮箱配额）
 - 工单系统
 - 修改密码
 - 忘记密码
 - TG交流群入口
+- 界面主题切换（Magic UI / Material 3）与日间 / 夜间模式
 - 绑定/解绑 NodeLoc 账户
 - 绑定/解绑 Telegram 账户
 - 绑定/解绑 Google 账户
 - 绑定/解绑 LinuxDo 账户
 
 ### 管理后台
-- 用户管理（查看/搜索/修改用户组/单独设置用户邮箱配额）
+- 用户管理（查看/搜索/封禁/解封/删除/修改用户组/单独设置用户邮箱配额）
 - 卡密管理（创建/删除/查看使用次数/清理过期卡密）
 - 工单管理（查看/回复/关闭/重新打开工单）
 - 域名管理（添加/启用/禁用/删除）
@@ -93,11 +99,14 @@ python init_db.py update
 - 公告管理（发布/显示/隐藏/删除）
 - 前缀黑名单管理（禁止特定邮箱前缀注册）
 - 邮箱后缀限制（只允许特定后缀注册账户）
+- 数据清理（过期令牌 / 已关闭工单 / 未验证用户，支持手动与自动执行）
 - 站点设置（编辑站点名称/描述/域名/购买卡密链接/TG群链接/默认邮箱配额/前缀长度限制/邮件服务器配置）
 - 邮件服务器配置（SMTP/IMAP/POP3/Webmail）
 - 关于页面编辑
 - 用户协议编辑
-- 
+- 关于系统（版本信息与开发人员）
+- 检查更新（读取远程 `version_update.json` 获取版本与更新内容）
+
 ### 权限控制
 - **Owner（所有者）**：可访问所有后台功能
 - **Pro用户**：享受更少的邮箱前缀限制和更多的邮箱配额
@@ -108,6 +117,19 @@ python init_db.py update
 - 已注册用户的邮箱上限不受默认值变化影响
 - 可在用户管理中单独修改每个用户的邮箱上限
 - 卡密兑换增加额外邮箱配额
+
+## 界面主题
+
+系统内置两套主题，在导航栏右上角即可切换，所有页面（含管理后台）同步生效，无需刷新：
+
+| 主题 | 说明 |
+|------|------|
+| Magic UI | 深色渐变背景、玻璃拟态卡片、点阵网格、鼠标光斑与微动效 |
+| Material 3 | Material You 设计语言，采用 M3 配色令牌、Roboto 字体与药丸按钮 |
+
+日夜模式通过导航栏的月亮 / 太阳按钮切换，两套主题均各自适配日间与夜间。偏好保存在浏览器 `localStorage`（`ui-theme`、`ui-mode`），首次访问会自动跟随系统的 `prefers-color-scheme`。
+
+> 主题切换纯前端实现（CSS 变量 + Tailwind CDN），不涉及后端配置，也不影响已有数据。
 
 ## 环境变量说明
 
@@ -142,10 +164,14 @@ python init_db.py update
 | LINUXDO_CLIENT_ID | LinuxDo OAuth Client ID | your-client-id |
 | LINUXDO_CLIENT_SECRET | LinuxDo OAuth Client Secret | your-client-secret |
 | LINUXDO_REDIRECT_URI | LinuxDo OAuth回调地址 | http://localhost:5000/auth/linuxdo/callback |
-| SMTP_SERVER | SMTP服务器 | smtp.example.com |
-| SMTP_PORT | SMTP端口 | 587 |
-| SMTP_USERNAME | SMTP用户名 | noreply@example.com |
-| SMTP_PASSWORD | SMTP密码 | smtp_password |
+| MAIL_SERVER | 发件SMTP服务器 | smtp.example.com |
+| MAIL_PORT | SMTP端口 | 587 |
+| MAIL_USE_TLS | 是否启用TLS | true |
+| MAIL_USERNAME | SMTP用户名 | noreply@example.com |
+| MAIL_PASSWORD | SMTP密码 | smtp_password |
+| MAIL_DEFAULT_SENDER | 默认发件人 | noreply@example.com |
+| FLASK_DEBUG | 是否开启调试模式（生产环境务必为false） | false |
+| AUTO_CLEANUP_ENABLED | 是否每24小时自动清理过期令牌、关闭工单和未验证账户 | true |
 | ADMIN_USERNAME | Owner用户名 | admin |
 | ADMIN_EMAIL | Owner邮箱 | admin@example.com |
 | ADMIN_PASSWORD | Owner密码 | admin123 |
@@ -153,43 +179,50 @@ python init_db.py update
 ## 项目结构
 
 ```
-Email_Distribution/
-├── app.py                      # 主应用文件
-├── requirements.txt            # 依赖项
-├── .env.example               # 环境变量示例
-├── README.md                  # 项目说明
-├── templates/                 # 模板文件
-│   ├── base.html              # 基础模板
-│   ├── index.html             # 首页
-│   ├── register.html          # 注册页
-│   ├── login.html             # 登录页
-│   ├── forgot_password.html   # 忘记密码页
-│   ├── reset_password.html    # 重置密码页
-│   ├── change_password.html   # 修改密码页
-│   ├── redeem_code.html       # 卡密兑换页
-│   ├── create_ticket.html     # 创建工单页
-│   ├── tickets.html           # 工单列表页
-│   ├── view_ticket.html       # 查看工单页
-│   ├── dashboard.html         # 用户中心
-│   ├── about.html             # 关于页面
-│   ├── agreement.html         # 用户协议
-│   └── admin/                 # 管理后台模板
-│       ├── base.html          # 后台基础模板
-│       ├── dashboard.html     # 后台概览
-│       ├── users.html         # 用户管理
-│       ├── domains.html       # 域名管理
-│       ├── emails.html        # 邮箱管理
-│       ├── codes.html         # 卡密管理
-│       ├── create_code.html   # 创建卡密
-│       ├── show_codes.html    # 显示卡密列表
-│       ├── tickets.html       # 工单管理
-│       ├── announcements.html # 公告管理
-│       ├── prefix_blacklist.html # 前缀黑名单管理
-│       ├── email_suffixes.html # 邮箱后缀限制
-│       ├── about.html         # 关于页面编辑
-│       ├── agreement.html     # 用户协议编辑
-│       └── settings.html      # 站点设置
-└── static/                    # 静态文件（如需要）
+Serv00_MailManagerSystem/
+├── app.py                         # 主应用文件
+├── init_db.py                     # 数据库初始化 / 更新脚本
+├── update_db.py                   # 数据库更新脚本
+├── requirements.txt               # 依赖项
+├── .env.example                   # 环境变量示例
+├── README.md                      # 项目说明
+├── LICENSE                        # 开源许可证
+├── docs/
+│   └── version_update.json        # 检查更新使用的远程版本信息
+├── static/                        # 静态资源
+├── templates/                     # 模板文件
+│   ├── base.html                  # 基础模板（含双主题与日夜模式）
+│   ├── index.html                 # 首页
+│   ├── register.html              # 注册页
+│   ├── login.html                 # 登录页
+│   ├── forgot_password.html       # 忘记密码页
+│   ├── reset_password.html        # 重置密码页
+│   ├── change_password.html       # 修改密码页
+│   ├── redeem_code.html           # 卡密兑换页
+│   ├── create_ticket.html         # 创建工单页
+│   ├── tickets.html               # 工单列表页
+│   ├── view_ticket.html           # 查看工单页
+│   ├── dashboard.html             # 用户中心
+│   ├── about.html                 # 关于页面
+│   ├── agreement.html             # 用户协议
+│   └── admin/                     # 管理后台模板
+│       ├── base.html              # 后台基础模板
+│       ├── dashboard.html         # 后台概览
+│       ├── users.html             # 用户管理
+│       ├── domains.html           # 域名管理
+│       ├── emails.html            # 邮箱管理
+│       ├── codes.html             # 卡密管理
+│       ├── create_code.html       # 创建卡密
+│       ├── show_codes.html        # 显示卡密列表
+│       ├── tickets.html           # 工单管理
+│       ├── announcements.html     # 公告管理
+│       ├── prefix_blacklist.html  # 前缀黑名单管理
+│       ├── email_suffixes.html    # 邮箱后缀限制
+│       ├── about.html             # 关于页面编辑
+│       ├── about_system.html      # 关于系统
+│       ├── agreement.html         # 用户协议编辑
+│       ├── check_update.html      # 检查更新
+│       └── settings.html          # 站点设置
 ```
 
 ## NodeLoc OAuth 使用说明
@@ -311,8 +344,15 @@ python init_db.py update
 
 ## 致谢
 
-本项目使用了以下开源项目：
-- [Liquid Glass](https://github.com/shuding/liquid-glass) - 提供液态玻璃效果
+本项目使用了以下开源项目与服务：
+
+- [Flask](https://flask.palletsprojects.com/) - Web 框架
+- [Tailwind CSS](https://tailwindcss.com/) - 样式框架（CDN）
+- [Font Awesome](https://fontawesome.com/) - 图标库
+- [AOS](https://michalsnik.github.io/aos/) - 滚动入场动画
+- [Google Fonts](https://fonts.google.com/) - Geist / Roboto 字体
+
+界面参考：[Magic UI](https://magicui.design/)、[Material 3](https://m3.material.io/)。
 
 ## 许可证
 

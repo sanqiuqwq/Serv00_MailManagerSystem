@@ -3,15 +3,20 @@
 {% block title %}工单管理 - {{ site_settings.site_name }}{% endblock %}
 
 {% block admin_content %}
-<div class="glass-card rounded-3xl p-8 mb-6">
-    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-        <i class="fas fa-headset text-indigo-600"></i>工单管理
-    </h1>
-    <p class="text-slate-600">查看和管理所有用户工单</p>
+<div class="glass-card card-line rounded-3xl p-6 md:p-7 mb-6">
+    <div class="flex items-center gap-3.5">
+        <span class="icon-tile !w-11 !h-11 !rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600">
+            <i class="fas fa-headset"></i>
+        </span>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">工单管理</h1>
+            <p class="text-xs text-slate-500 mt-0.5">查看和管理所有用户工单</p>
+        </div>
+    </div>
 </div>
 
 {% if tickets %}
-<div data-aos="fade-up" class="glass-card rounded-3xl p-6 overflow-x-auto">
+<div data-aos="fade-up" class="glass-card rounded-3xl p-2 md:p-4 overflow-x-auto">
     <table class="data-table min-w-full">
         <thead>
             <tr>
@@ -26,9 +31,9 @@
         <tbody>
             {% for ticket in tickets %}
             <tr>
-                <td class="font-mono text-sm">#{{ ticket.id }}</td>
-                <td class="font-bold text-slate-800">{{ ticket.title }}</td>
-                <td>{{ ticket.user.username }}</td>
+                <td class="font-mono text-xs text-slate-500">#{{ ticket.id }}</td>
+                <td class="font-semibold text-white">{{ ticket.title }}</td>
+                <td class="text-sm">{{ ticket.user.username }}</td>
                 <td>
                     {% if ticket.status == 'open' %}
                     <span class="badge-success">进行中</span>
@@ -36,7 +41,7 @@
                     <span class="badge-secondary">已关闭</span>
                     {% endif %}
                 </td>
-                <td class="text-sm text-slate-600">{{ ticket.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="text-xs text-slate-500">{{ ticket.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
                     <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn-primary btn-sm">
                         <i class="fas fa-eye"></i>查看
@@ -48,9 +53,11 @@
     </table>
 </div>
 {% else %}
-<div data-aos="fade-up" class="glass-card rounded-3xl p-12 text-center">
-    <i class="fas fa-inbox text-6xl text-slate-300 mb-4"></i>
-    <p class="text-xl text-slate-600">暂无工单</p>
+<div data-aos="fade-up" class="glass-card rounded-3xl p-14 text-center">
+    <div class="icon-tile !w-16 !h-16 !rounded-2xl mx-auto mb-5 bg-white/5 border-white/10 text-slate-500 text-2xl">
+        <i class="fas fa-inbox"></i>
+    </div>
+    <p class="text-base text-slate-400">暂无工单</p>
 </div>
 {% endif %}
 {% endblock %}

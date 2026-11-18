@@ -3,26 +3,32 @@
 {% block title %}用户管理 - {{ site_settings.site_name }}{% endblock %}
 
 {% block admin_content %}
-<div class="glass-card rounded-3xl p-8 mb-6">
-    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-        <i class="fas fa-users text-indigo-600"></i>用户管理
-    </h1>
-    <p class="text-slate-600">管理所有注册用户</p>
+<div class="glass-card card-line rounded-3xl p-6 md:p-7 mb-6">
+    <div class="flex items-center gap-3.5">
+        <span class="icon-tile !w-11 !h-11 !rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600">
+            <i class="fas fa-users"></i>
+        </span>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">用户管理</h1>
+            <p class="text-xs text-slate-500 mt-0.5">管理所有注册用户</p>
+        </div>
+    </div>
 </div>
 
-<div class="glass-card rounded-3xl p-6 mb-6">
+<div class="glass-card rounded-3xl p-4 mb-6">
     <form method="GET" class="flex flex-wrap items-center gap-3">
-        <div class="flex-1 min-w-[200px]">
-            <input type="text" class="form-input" name="search" placeholder="搜索用户名/邮箱/UID" value="{{ search_query }}">
+        <div class="relative flex-1 min-w-[200px]">
+            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+            <input type="text" class="form-input !pl-10" name="search" placeholder="搜索用户名 / 邮箱 / UID" value="{{ search_query }}">
         </div>
         <button type="submit" class="btn-primary"><i class="fas fa-search"></i>搜索</button>
         {% if search_query %}
-        <a href="{{ url_for('admin_users') }}" class="btn-ghost"><i class="fas fa-times"></i>清除</a>
+        <a href="{{ url_for('admin_users') }}" class="btn-ghost"><i class="fas fa-xmark"></i>清除</a>
         {% endif %}
     </form>
 </div>
 
-<div data-aos="fade-up" class="glass-card rounded-3xl p-6 overflow-x-auto">
+<div data-aos="fade-up" class="glass-card rounded-3xl p-2 md:p-4 overflow-x-auto">
     <table class="data-table min-w-full">
         <thead>
             <tr>
@@ -39,16 +45,17 @@
         <tbody>
             {% for user in users %}
             <tr>
-                <td class="font-mono text-sm">{{ user.uid }}</td>
+                <td class="font-mono text-xs">{{ user.uid }}</td>
                 <td>
-                    <div class="font-bold text-slate-800">{{ user.username }}</div>
+                    <div class="font-semibold text-white">{{ user.username }}</div>
                     {% if user.role == 'owner' %}<span class="badge-danger mt-1">Owner</span>{% elif user.role == 'pro' %}<span class="badge-warning mt-1">Pro</span>{% endif %}
                 </td>
-                {% if current_user.is_owner() %}<td class="font-mono text-sm">{{ user.email }}</td>{% endif %}
+                {% if current_user.is_owner() %}<td class="font-mono text-xs">{{ user.email }}</td>{% endif %}
                 <td>
                     {% if user.role != 'owner' or current_user.is_owner() %}
                     <form method="POST" action="{{ url_for('admin_change_role', user_id=user.id) }}" class="flex flex-wrap items-center gap-2">
-                        <select name="role" class="form-select text-sm py-2" style="width:auto;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <select name="role" class="form-select text-xs !py-2" style="width:auto;">
                             <option value="user" {% if user.role == 'user' %}selected{% endif %}>普通用户</option>
                             <option value="pro" {% if user.role == 'pro' %}selected{% endif %}>Pro用户</option>
                             {% if current_user.is_owner() %}
@@ -56,7 +63,7 @@
                             {% endif %}
                         </select>
                         {% if user.role == 'pro' %}
-                        <select name="duration" class="form-select text-sm py-2" style="width:auto;">
+                        <select name="duration" class="form-select text-xs !py-2" style="width:auto;">
                             <option value="30">30天</option>
                             <option value="90">90天</option>
                             <option value="365">365天</option>
@@ -66,7 +73,7 @@
                         <button type="submit" class="btn-info btn-sm">修改</button>
                     </form>
                     {% else %}
-                    {% if user.role == 'owner' %}Owner{% elif user.role == 'pro' %}Pro用户{% else %}普通用户{% endif %}
+                    <span class="text-sm text-slate-400">{% if user.role == 'owner' %}Owner{% elif user.role == 'pro' %}Pro用户{% else %}普通用户{% endif %}</span>
                     {% endif %}
                 </td>
                 <td>
@@ -79,25 +86,35 @@
                     {% endif %}
                 </td>
                 <td>
-                    <p class="font-bold text-slate-800">{{ user.get_email_count() }}/{{ user.get_max_emails() }}</p>
+                    <p class="font-semibold text-white text-sm">{{ user.get_email_count() }}/{{ user.get_max_emails() }}</p>
                     {% if user.role != 'owner' or current_user.is_owner() %}
                     <form method="POST" action="{{ url_for('admin_update_max_emails', user_id=user.id) }}" class="flex items-center gap-2 mt-2">
-                        <input type="number" name="max_emails" class="form-input text-sm py-1 px-2" value="{{ user.max_emails }}" min="1" style="width:80px;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="number" name="max_emails" class="form-input text-xs !py-1.5 !px-2" value="{{ user.max_emails }}" min="1" style="width:80px;">
                         <button type="submit" class="btn-success btn-sm">更新</button>
                     </form>
                     {% endif %}
                 </td>
-                <td class="text-sm text-slate-600">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="text-xs text-slate-500">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-1.5">
                         {% if user.role != 'owner' or current_user.is_owner() %}
                             {% if user.role != 'owner' %}
                                 {% if user.is_banned %}
-                                <a href="{{ url_for('admin_unban_user', user_id=user.id) }}" class="btn-success btn-sm">解封</a>
+                                <form method="POST" action="{{ url_for('admin_unban_user', user_id=user.id) }}" class="contents">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-success btn-sm">解封</button>
+                                </form>
                                 {% else %}
-                                <a href="{{ url_for('admin_ban_user', user_id=user.id) }}" class="btn-warning btn-sm">封禁</a>
+                                <form method="POST" action="{{ url_for('admin_ban_user', user_id=user.id) }}" class="contents">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-warning btn-sm">封禁</button>
+                                </form>
                                 {% endif %}
-                                <a href="{{ url_for('admin_delete_user', user_id=user.id) }}" class="btn-danger btn-sm" onclick="return confirm('确定要删除此用户吗？')">删除</a>
+                                <form method="POST" action="{{ url_for('admin_delete_user', user_id=user.id) }}" class="contents" onsubmit="return confirm('确定要删除此用户吗？')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-danger btn-sm">删除</button>
+                                </form>
                             {% endif %}
                         {% endif %}
                     </div>

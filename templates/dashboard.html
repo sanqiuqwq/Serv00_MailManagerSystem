@@ -3,82 +3,94 @@
 {% block title %}用户中心 - {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
-<section data-aos="fade-up" class="glass-card rounded-3xl p-8 mb-6">
-    <div class="flex items-center gap-4 mb-6">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-            {{ current_user.username[0]|upper }}
+<section data-aos="fade-up" class="glass-card card-line spotlight rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between gap-4 flex-wrap mb-6">
+        <div class="flex items-center gap-4">
+            <div class="icon-tile !w-14 !h-14 !rounded-2xl !text-lg !font-bold bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500">
+                {{ current_user.username[0]|upper }}
+            </div>
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">{{ current_user.username }}</h1>
+                    {% if current_user.role == 'owner' %}
+                    <span class="badge-danger">Owner</span>
+                    {% elif current_user.role == 'pro' %}
+                    <span class="badge-warning">Pro</span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-slate-500 font-mono mt-1">UID: {{ current_user.uid }}</p>
+            </div>
         </div>
-        <div>
-            <h1 class="text-2xl font-bold text-slate-800">{{ current_user.username }}</h1>
-            <p class="text-slate-600">UID: {{ current_user.uid }}</p>
-        </div>
+        <a href="{{ url_for('change_password') }}" class="btn-ghost btn-sm"><i class="fas fa-key"></i>修改密码</a>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white/60 rounded-2xl p-4">
-            <p class="text-sm text-slate-500 mb-1">邮箱配额</p>
-            <p class="text-2xl font-bold text-slate-800">{{ current_user.get_email_count() }}/{{ current_user.get_max_emails() }}</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div class="tile p-4">
+            <p class="text-[0.7rem] uppercase tracking-wider text-slate-500 mb-1.5">邮箱配额</p>
+            <p class="text-2xl font-bold text-white">{{ current_user.get_email_count() }}<span class="text-slate-500 text-base font-medium"> / {{ current_user.get_max_emails() }}</span></p>
             {% if current_user.temp_expires_at and current_user.temp_expires_at > datetime.utcnow() %}
-            <span class="badge-info mt-2">临时+{{ current_user.temp_extra_emails }}</span>
+            <span class="badge-info mt-2">临时 +{{ current_user.temp_extra_emails }}</span>
             {% endif %}
         </div>
-        
-        <div class="bg-white/60 rounded-2xl p-4">
-            <p class="text-sm text-slate-500 mb-1">验证状态</p>
+
+        <div class="tile p-4">
+            <p class="text-[0.7rem] uppercase tracking-wider text-slate-500 mb-1.5">验证状态</p>
             {% if current_user.is_verified %}
-            <span class="badge-success">已验证</span>
+            <span class="badge-success"><i class="fas fa-circle-check"></i>已验证</span>
             {% else %}
-            <span class="badge-warning">未验证</span>
+            <span class="badge-warning"><i class="fas fa-triangle-exclamation"></i>未验证</span>
             {% endif %}
         </div>
-        
-        <div class="bg-white/60 rounded-2xl p-4">
-            <p class="text-sm text-slate-500 mb-1">用户组</p>
+
+        <div class="tile p-4">
+            <p class="text-[0.7rem] uppercase tracking-wider text-slate-500 mb-1.5">用户组</p>
             {% if current_user.role == 'owner' %}
             <span class="badge-danger">Owner</span>
             {% elif current_user.role == 'pro' %}
-            <span class="badge-warning">Pro用户</span>
+            <span class="badge-warning">Pro 用户</span>
             {% if current_user.pro_expires_at %}
-            <p class="text-xs text-slate-500 mt-1">到期: {{ current_user.pro_expires_at.strftime('%Y-%m-%d') }}</p>
+            <p class="text-[0.7rem] text-slate-500 mt-1.5">到期 {{ current_user.pro_expires_at.strftime('%Y-%m-%d') }}</p>
             {% endif %}
             {% else %}
             <span class="badge-secondary">普通用户</span>
             {% endif %}
         </div>
-        
-        <div class="bg-white/60 rounded-2xl p-4">
-            <p class="text-sm text-slate-500 mb-1">注册时间</p>
-            <p class="text-sm font-semibold text-slate-800">{{ current_user.created_at.strftime('%Y-%m-%d') }}</p>
+
+        <div class="tile p-4">
+            <p class="text-[0.7rem] uppercase tracking-wider text-slate-500 mb-1.5">注册时间</p>
+            <p class="text-sm font-semibold text-slate-200">{{ current_user.created_at.strftime('%Y-%m-%d') }}</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+    <div class="flex flex-wrap gap-2 mb-5">
         <a href="{{ url_for('change_password') }}" class="btn-warning btn-sm"><i class="fas fa-key"></i>修改密码</a>
         <a href="{{ url_for('redeem_code') }}" class="btn-info btn-sm"><i class="fas fa-gift"></i>卡密兑换</a>
         {% if site_settings.purchase_code_url %}
         <a href="{{ site_settings.purchase_code_url }}" target="_blank" class="btn-success btn-sm"><i class="fas fa-shopping-cart"></i>购买卡密</a>
         {% endif %}
         {% if site_settings.tg_group_url %}
-        <a href="{{ site_settings.tg_group_url }}" target="_blank" class="btn-info btn-sm"><i class="fab fa-telegram"></i>TG群</a>
+        <a href="{{ site_settings.tg_group_url }}" target="_blank" class="btn-info btn-sm"><i class="fab fa-telegram"></i>TG 群</a>
         {% endif %}
         <a href="{{ url_for('tickets') }}" class="btn-primary btn-sm"><i class="fas fa-headset"></i>工单</a>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         {% if nodeloc_enabled %}
-        <form method="GET" action="{% if current_user.nodeloc_id %}{{ url_for('auth_nodeloc_unbind') }}{% else %}{{ url_for('auth_nodeloc_bind') }}{% endif %}" class="contents">
+        <form method="{% if current_user.nodeloc_id %}POST{% else %}GET{% endif %}" action="{% if current_user.nodeloc_id %}{{ url_for('auth_nodeloc_unbind') }}{% else %}{{ url_for('auth_nodeloc_bind') }}{% endif %}" class="contents">
+            {% if current_user.nodeloc_id %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
             <button type="submit" class="{% if current_user.nodeloc_id %}btn-danger{% else %}btn-ghost{% endif %} btn-sm w-full">
-                <i class="fa fa-globe"></i>{% if current_user.nodeloc_id %}解绑{% else %}绑定{% endif %}NodeLoc
+                <i class="fa fa-globe"></i>{% if current_user.nodeloc_id %}解绑{% else %}绑定{% endif %} NodeLoc
             </button>
         </form>
         {% endif %}
-        
+
         {% if telegram_enabled and telegram_bot_username %}
         <form method="POST" action="{% if current_user.telegram_id %}{{ url_for('auth_telegram_unbind') }}{% else %}{{ url_for('auth_telegram_bind') }}{% endif %}" id="telegram-bind-form" class="contents">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             {% if not current_user.telegram_id %}
-            <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                    data-telegram-login="{{ telegram_bot_username }}" 
-                    data-size="medium" 
+            <script async src="https://telegram.org/js/telegram-widget.js?22"
+                    data-telegram-login="{{ telegram_bot_username }}"
+                    data-size="medium"
                     data-request-access="write"
                     data-onauth="onTelegramBind(user)">
             </script>
@@ -98,78 +110,94 @@
             }
             </script>
             {% else %}
-            <button type="submit" class="btn-danger btn-sm w-full"><i class="fab fa-telegram"></i>解绑Telegram</button>
+            <button type="submit" class="btn-danger btn-sm w-full"><i class="fab fa-telegram"></i>解绑 Telegram</button>
             {% endif %}
         </form>
         {% endif %}
-        
+
         {% if google_enabled %}
-        <form method="GET" action="{% if current_user.google_id %}{{ url_for('auth_google_unbind') }}{% else %}{{ url_for('auth_google_bind') }}{% endif %}" class="contents">
+        <form method="{% if current_user.google_id %}POST{% else %}GET{% endif %}" action="{% if current_user.google_id %}{{ url_for('auth_google_unbind') }}{% else %}{{ url_for('auth_google_bind') }}{% endif %}" class="contents">
+            {% if current_user.google_id %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
             <button type="submit" class="{% if current_user.google_id %}btn-danger{% else %}btn-ghost{% endif %} btn-sm w-full">
-                <i class="fab fa-google"></i>{% if current_user.google_id %}解绑{% else %}绑定{% endif %}Google
+                <i class="fab fa-google"></i>{% if current_user.google_id %}解绑{% else %}绑定{% endif %} Google
             </button>
         </form>
         {% endif %}
-        
+
         {% if linuxdo_enabled %}
-        <form method="GET" action="{% if current_user.linuxdo_id %}{{ url_for('auth_linuxdo_unbind') }}{% else %}{{ url_for('auth_linuxdo_bind') }}{% endif %}" class="contents">
+        <form method="{% if current_user.linuxdo_id %}POST{% else %}GET{% endif %}" action="{% if current_user.linuxdo_id %}{{ url_for('auth_linuxdo_unbind') }}{% else %}{{ url_for('auth_linuxdo_bind') }}{% endif %}" class="contents">
+            {% if current_user.linuxdo_id %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
             <button type="submit" class="{% if current_user.linuxdo_id %}btn-danger{% else %}btn-ghost{% endif %} btn-sm w-full">
-                <i class="fab fa-linux"></i>{% if current_user.linuxdo_id %}解绑{% else %}绑定{% endif %}LinuxDo
+                <i class="fab fa-linux"></i>{% if current_user.linuxdo_id %}解绑{% else %}绑定{% endif %} LinuxDo
             </button>
         </form>
         {% endif %}
-        
+
         {% if not current_user.is_verified %}
         <form method="POST" action="{{ url_for('resend_verification') }}" class="contents">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn-warning btn-sm w-full"><i class="fas fa-paper-plane"></i>重发验证邮件</button>
         </form>
         {% endif %}
     </div>
 
     {% if not current_user.is_verified %}
-    <div class="alert-warning mt-6 flex items-center gap-3">
-        <i class="fas fa-exclamation-triangle text-xl"></i>
+    <div class="alert-warning mt-5 flex items-center gap-3">
+        <i class="fas fa-triangle-exclamation"></i>
         <span>您的邮箱尚未验证，请先验证邮箱后再创建邮箱。</span>
     </div>
     {% endif %}
 </section>
 
-<section data-aos="fade-up" data-aos-delay="100" class="glass-card rounded-3xl p-8 mb-6">
-    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-        <i class="fas fa-server text-indigo-600"></i>邮件服务器信息
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white/60 rounded-xl p-4">
-            <p class="text-sm text-slate-500 mb-1">SMTP</p>
-            <p class="font-mono font-semibold text-slate-800">{{ site_settings.smtp_server }}</p>
+<section data-aos="fade-up" data-aos-delay="60" class="glass-card rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center gap-3 mb-5">
+        <span class="icon-tile !w-10 !h-10 !rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-sm">
+            <i class="fas fa-server"></i>
+        </span>
+        <div>
+            <h2 class="text-base font-semibold text-white">邮件服务器信息</h2>
+            <p class="text-xs text-slate-500">在邮件客户端中使用以下配置</p>
         </div>
-        <div class="bg-white/60 rounded-xl p-4">
-            <p class="text-sm text-slate-500 mb-1">IMAP</p>
-            <p class="font-mono font-semibold text-slate-800">{{ site_settings.imap_server }}</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="tile p-4">
+            <p class="text-[0.7rem] uppercase tracking-wider text-slate-500 mb-1.5">SMTP</p>
+            <p class="font-mono text-sm font-medium text-slate-200 break-all">{{ site_settings.smtp_server }}</p>
         </div>
-        <div class="bg-white/60 rounded-xl p-4">
-            <p class="text-sm text-slate-500 mb-1">POP3</p>
-            <p class="font-mono font-semibold text-slate-800">{{ site_settings.pop3_server }}</p>
+        <div class="tile p-4">
+            <p class="text-[0.7rem] uppercase tracking-wider text-slate-500 mb-1.5">IMAP</p>
+            <p class="font-mono text-sm font-medium text-slate-200 break-all">{{ site_settings.imap_server }}</p>
         </div>
-        <div class="bg-white/60 rounded-xl p-4">
-            <p class="text-sm text-slate-500 mb-1">Webmail</p>
-            <a href="{{ site_settings.webmail_url }}" target="_blank" class="font-mono text-indigo-600 hover:text-indigo-800 text-sm break-all">{{ site_settings.webmail_url }}</a>
+        <div class="tile p-4">
+            <p class="text-[0.7rem] uppercase tracking-wider text-slate-500 mb-1.5">POP3</p>
+            <p class="font-mono text-sm font-medium text-slate-200 break-all">{{ site_settings.pop3_server }}</p>
+        </div>
+        <div class="tile p-4">
+            <p class="text-[0.7rem] uppercase tracking-wider text-slate-500 mb-1.5">Webmail</p>
+            <a href="{{ site_settings.webmail_url }}" target="_blank" class="font-mono text-sm text-indigo-300 hover:text-white break-all transition">{{ site_settings.webmail_url }}</a>
         </div>
     </div>
 </section>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <section data-aos="fade-right" class="glass-card rounded-3xl p-8">
-        <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <i class="fas fa-plus-circle text-emerald-600"></i>创建新邮箱
-        </h2>
-        <form method="POST" action="{{ url_for('create_email') }}" class="space-y-4">
+    <section data-aos="fade-right" class="glass-card card-line rounded-3xl p-6 md:p-8">
+        <div class="flex items-center gap-3 mb-6">
+            <span class="icon-tile bg-gradient-to-br from-emerald-500 to-teal-600">
+                <i class="fas fa-plus"></i>
+            </span>
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">邮箱前缀</label>
+                <h2 class="text-base font-semibold text-white">创建新邮箱</h2>
+                <p class="text-xs text-slate-500">选择一个域名并设置独立密码</p>
+            </div>
+        </div>
+        <form method="POST" action="{{ url_for('create_email') }}" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-2">邮箱前缀</label>
                 <input type="text" class="form-input" name="prefix" required placeholder="例如: myname">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">选择域名</label>
+                <label class="block text-xs font-semibold text-slate-300 mb-2">选择域名</label>
                 <select class="form-select" name="domain_id" required>
                     {% for domain in domains %}
                     <option value="{{ domain.id }}">{{ domain.domain }}</option>
@@ -177,50 +205,62 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">邮箱密码</label>
+                <label class="block text-xs font-semibold text-slate-300 mb-2">邮箱密码</label>
                 <input type="password" class="form-input" name="email_password" required>
-                <p class="text-xs text-slate-500 mt-2">
-                    密码要求：至少6个字符，包含数字、小写字母和大写字母
-                </p>
+                <p class="text-[0.72rem] text-slate-500 mt-2">至少 6 个字符，需包含数字、小写字母和大写字母</p>
             </div>
             {% if recaptcha_enabled and recaptcha_site_key %}
             <div class="flex justify-center">
                 <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
             </div>
             {% endif %}
-            <button type="submit" class="btn-success w-full">
+            <button type="submit" class="btn-success w-full !py-3">
                 <i class="fas fa-plus"></i>创建邮箱
             </button>
         </form>
     </section>
 
-    <section data-aos="fade-left" class="glass-card rounded-3xl p-8">
-        <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <i class="fas fa-envelope text-cyan-600"></i>我的邮箱
-        </h2>
-        <div class="alert-info mb-4 text-sm">
-            <i class="fa fa-info-circle mr-2"></i>删除邮箱请发工单联系管理员
+    <section data-aos="fade-left" class="glass-card rounded-3xl p-6 md:p-8">
+        <div class="flex items-center justify-between gap-3 mb-5">
+            <div class="flex items-center gap-3">
+                <span class="icon-tile bg-gradient-to-br from-cyan-500 to-blue-600">
+                    <i class="fas fa-envelope"></i>
+                </span>
+                <div>
+                    <h2 class="text-base font-semibold text-white">我的邮箱</h2>
+                    <p class="text-xs text-slate-500">共 {{ emails|length }} 个地址</p>
+                </div>
+            </div>
         </div>
+
         {% if emails %}
-        <div class="space-y-3 max-h-96 overflow-y-auto">
+        <div class="space-y-3 max-h-[26rem] overflow-y-auto pr-1">
             {% for email in emails %}
-            <div class="bg-white/60 rounded-2xl p-4 border border-white/80">
+            <div class="tile p-4">
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex-1 min-w-0">
-                        <p class="font-bold text-slate-800 break-all">{{ email.email_address }}</p>
-                        <p class="text-sm text-slate-500 font-mono mt-1">密码: {{ email.email_password }}</p>
-                        {% if email.is_disabled %}
-                        <span class="badge-danger mt-2">已禁用</span>
-                        {% endif %}
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <p class="font-semibold text-white break-all text-sm">{{ email.email_address }}</p>
+                            {% if email.is_disabled %}
+                            <span class="badge-danger">已禁用</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-xs text-slate-500 font-mono mt-1.5 break-all">密码：{{ email.email_password }}</p>
                     </div>
                     {% if not email.is_disabled %}
-                    <div class="flex flex-col gap-2 shrink-0">
+                    <div class="flex flex-col gap-1.5 shrink-0">
                         <button class="btn-warning btn-sm" onclick="document.getElementById('resetModal{{ email.id }}').style.display='flex'">
                             <i class="fas fa-key"></i>重置
                         </button>
                         <button class="btn-info btn-sm" onclick="document.getElementById('transferModal{{ email.id }}').style.display='flex'">
                             <i class="fas fa-paper-plane"></i>转移
                         </button>
+                        <form method="POST" action="{{ url_for('delete_email', email_id=email.id) }}" class="contents" onsubmit="return confirm('确定要删除邮箱 {{ email.email_address }} 吗？该操作会同时删除服务器上的邮箱，且不可恢复。')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-danger btn-sm">
+                                <i class="fas fa-trash"></i>删除
+                            </button>
+                        </form>
                     </div>
                     {% endif %}
                 </div>
@@ -228,32 +268,36 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12 text-slate-500">
-            <i class="fas fa-inbox text-5xl mb-3 opacity-30"></i>
-            <p>暂无邮箱</p>
+        <div class="text-center py-14 text-slate-500">
+            <i class="fas fa-inbox text-5xl mb-4 opacity-25"></i>
+            <p class="text-sm">暂无邮箱，创建你的第一个地址吧</p>
         </div>
         {% endif %}
     </section>
 </div>
 
 <div class="alert-info mt-6 flex items-center gap-3" data-aos="fade-up">
-    <i class="fas fa-info-circle text-xl"></i>
-    <span>有问题请发工单联系管理员</span>
+    <i class="fas fa-circle-info"></i>
+    <span>有问题请提交工单联系管理员。</span>
 </div>
 
 {% if emails %}
 {% for email in emails %}
-<div id="resetModal{{ email.id }}" class="modal-overlay hidden" onclick="if(event.target===this)this.style.display='none'">
-    <div class="glass-card rounded-3xl p-8 max-w-md w-full">
-        <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <i class="fas fa-key text-amber-600"></i>重置邮箱密码
-        </h3>
+<div id="resetModal{{ email.id }}" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+    <div class="glass-card card-line rounded-3xl p-7 max-w-md w-full">
+        <div class="flex items-center gap-3 mb-5">
+            <span class="icon-tile !w-10 !h-10 !rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 text-sm">
+                <i class="fas fa-key"></i>
+            </span>
+            <h3 class="text-lg font-semibold text-white">重置邮箱密码</h3>
+        </div>
         <form method="POST" action="{{ url_for('reset_email_password', email_id=email.id) }}">
-            <div class="mb-4">
-                <p class="text-sm text-slate-600 mb-2">邮箱：<span class="font-mono font-semibold">{{ email.email_address }}</span></p>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">新密码</label>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-5">
+                <p class="text-sm text-slate-400 mb-3">邮箱：<span class="font-mono font-semibold text-slate-200">{{ email.email_address }}</span></p>
+                <label class="block text-xs font-semibold text-slate-300 mb-2">新密码</label>
                 <input type="password" class="form-input" name="new_password" required>
-                <p class="text-xs text-slate-500 mt-2">至少6字符，包含数字、大小写字母</p>
+                <p class="text-[0.72rem] text-slate-500 mt-2">至少 6 字符，包含数字、大小写字母</p>
             </div>
             <div class="flex gap-3">
                 <button type="button" class="btn-ghost flex-1" onclick="document.getElementById('resetModal{{ email.id }}').style.display='none'">取消</button>
@@ -263,19 +307,23 @@
     </div>
 </div>
 
-<div id="transferModal{{ email.id }}" class="modal-overlay hidden" onclick="if(event.target===this)this.style.display='none'">
-    <div class="glass-card rounded-3xl p-8 max-w-md w-full">
-        <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <i class="fas fa-paper-plane text-cyan-600"></i>转移邮箱所有权
-        </h3>
+<div id="transferModal{{ email.id }}" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+    <div class="glass-card card-line rounded-3xl p-7 max-w-md w-full">
+        <div class="flex items-center gap-3 mb-5">
+            <span class="icon-tile !w-10 !h-10 !rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-sm">
+                <i class="fas fa-paper-plane"></i>
+            </span>
+            <h3 class="text-lg font-semibold text-white">转移邮箱所有权</h3>
+        </div>
         <div class="alert-warning mb-4 text-sm">
-            <i class="fas fa-exclamation-triangle mr-2"></i>注意：转移后该邮箱将归新用户所有
+            <i class="fas fa-triangle-exclamation mr-2"></i>注意：转移后该邮箱将归新用户所有
         </div>
         <form method="POST" action="{{ url_for('transfer_email', email_id=email.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="mb-4">
-                <p class="text-sm text-slate-600 mb-2">邮箱：<span class="font-mono font-semibold">{{ email.email_address }}</span></p>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">目标用户UID</label>
-                <input type="text" class="form-input" name="target_uid" required placeholder="请输入对方用户的UID">
+                <p class="text-sm text-slate-400 mb-3">邮箱：<span class="font-mono font-semibold text-slate-200">{{ email.email_address }}</span></p>
+                <label class="block text-xs font-semibold text-slate-300 mb-2">目标用户 UID</label>
+                <input type="text" class="form-input" name="target_uid" required placeholder="请输入对方用户的 UID">
             </div>
             {% if recaptcha_enabled and recaptcha_site_key %}
             <div class="flex justify-center mb-4">

@@ -3,18 +3,25 @@
 {% block title %}域名管理 - {{ site_settings.site_name }}{% endblock %}
 
 {% block admin_content %}
-<div class="glass-card rounded-3xl p-8 mb-6">
-    <h1 class="text-3xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-        <i class="fas fa-globe text-cyan-600"></i>域名管理
-    </h1>
-    <p class="text-slate-600">管理邮箱域名</p>
+<div class="glass-card card-line rounded-3xl p-6 md:p-7 mb-6">
+    <div class="flex items-center gap-3.5">
+        <span class="icon-tile !w-11 !h-11 !rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600">
+            <i class="fas fa-globe"></i>
+        </span>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">域名管理</h1>
+            <p class="text-xs text-slate-500 mt-0.5">管理可用的邮箱域名</p>
+        </div>
+    </div>
 </div>
 
-<div data-aos="fade-up" class="glass-card rounded-3xl p-8 mb-6">
-    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-        <i class="fas fa-plus-circle text-emerald-600"></i>添加新域名
+<div data-aos="fade-up" class="glass-card rounded-3xl p-6 md:p-7 mb-6">
+    <h2 class="section-title mb-4">
+        <span class="icon-tile !w-8 !h-8 !rounded-lg bg-emerald-500/15 border-emerald-400/25 text-emerald-300 text-xs"><i class="fas fa-plus"></i></span>
+        添加新域名
     </h2>
     <form method="POST" action="{{ url_for('admin_add_domain') }}" class="flex flex-col md:flex-row gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="text" class="form-input flex-1" name="domain" placeholder="例如: @example.com" required>
         <button type="submit" class="btn-success">
             <i class="fas fa-plus"></i>添加
@@ -22,7 +29,7 @@
     </form>
 </div>
 
-<div data-aos="fade-up" class="glass-card rounded-3xl p-6 overflow-x-auto">
+<div data-aos="fade-up" class="glass-card rounded-3xl p-2 md:p-4 overflow-x-auto">
     <table class="data-table min-w-full">
         <thead>
             <tr>
@@ -36,8 +43,8 @@
         <tbody>
             {% for domain in domains %}
             <tr>
-                <td class="font-mono text-sm">#{{ domain.id }}</td>
-                <td class="font-mono font-bold text-slate-800">{{ domain.domain }}</td>
+                <td class="font-mono text-xs text-slate-500">#{{ domain.id }}</td>
+                <td class="font-mono font-semibold text-white">{{ domain.domain }}</td>
                 <td>
                     {% if domain.is_active %}
                     <span class="badge-success">启用</span>
@@ -45,15 +52,21 @@
                     <span class="badge-danger">禁用</span>
                     {% endif %}
                 </td>
-                <td class="text-sm text-slate-600">{{ domain.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="text-xs text-slate-500">{{ domain.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ url_for('admin_toggle_domain', domain_id=domain.id) }}" class="btn-warning btn-sm">
-                            {% if domain.is_active %}<i class="fas fa-ban"></i>禁用{% else %}<i class="fas fa-check"></i>启用{% endif %}
-                        </a>
-                        <a href="{{ url_for('admin_delete_domain', domain_id=domain.id) }}" class="btn-danger btn-sm" onclick="return confirm('确定要删除此域名吗？这将同时删除该域名下的所有邮箱！')">
-                            <i class="fas fa-trash"></i>删除
-                        </a>
+                    <div class="flex flex-wrap gap-1.5">
+                        <form method="POST" action="{{ url_for('admin_toggle_domain', domain_id=domain.id) }}" class="contents">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-warning btn-sm">
+                                {% if domain.is_active %}<i class="fas fa-ban"></i>禁用{% else %}<i class="fas fa-check"></i>启用{% endif %}
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin_delete_domain', domain_id=domain.id) }}" class="contents" onsubmit="return confirm('确定要删除此域名吗？这将同时删除该域名下的所有邮箱！')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-danger btn-sm">
+                                <i class="fas fa-trash"></i>删除
+                            </button>
+                        </form>
                     </div>
                 </td>
             </tr>
